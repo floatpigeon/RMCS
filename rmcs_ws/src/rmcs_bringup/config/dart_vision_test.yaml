@@ -1,0 +1,13 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+      # _ rmcs_core::controller::dartlauncher::MsgProcess -> msg_process
+
+vision_process:
+  ros__parameters:
+    invert_image: false
+    exposure_time: 3600
+    gain: 10.0161
+
