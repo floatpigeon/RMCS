@@ -8,6 +8,11 @@ rmcs_executor:
 vision_process:
   ros__parameters:
     invert_image: false
-    exposure_time: 3600
-    gain: 10.0161
-
+    exposure_time: 3000
+    gain: 0.00
+    lowerlimit_H: 50.00
+    lowerlimit_L: 80.00
+    lowerlimit_S: 128.00
+    upperlimit_H: 70.00
+    upperlimit_L: 160.00
+    upperlimit_S: 255.00
