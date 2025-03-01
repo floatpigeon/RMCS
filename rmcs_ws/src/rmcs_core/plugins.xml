@@ -62,6 +62,12 @@
   <class type="rmcs_core::referee::app::ui::Hero" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::controller::dartlauncher::DartLauncher" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::pid::PairedPidController" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
   <class type="rmcs_core::controller::dartlauncher::VisionProcess" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
