@@ -32,13 +32,6 @@ public:
         image_capture_                = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
         camera_read_thread_           = std::thread(&VisionProcess::image_capture, this);
 
-        lower_limit_ = cv::Scalar(
-            get_parameter("lowerlimit_H").as_double(), get_parameter("lowerlimit_L").as_double(),
-            get_parameter("lowerlimit_S").as_double());
-        upper_limit_ = cv::Scalar(
-            get_parameter("upperlimit_H").as_double(), get_parameter("upperlimit_L").as_double(),
-            get_parameter("upperlimit_S").as_double());
-
         image_process_thread_ = std::thread(&VisionProcess::identify, this);
 
         register_output("/dart/camera_image", output_image_);
@@ -58,6 +51,7 @@ public:
             *output_image_ = latest_display_image_;
         }
         double update_fps = fps_calc(update_last_time_point_, false);
+
         RCLCPP_INFO(
             logger_, "fps:update:%8.3lf,camera:%8.3lf,identify:%8.3lf,image_id:%5d", update_fps, camera_fps,
             identify_fps, the_id);
@@ -83,19 +77,6 @@ private:
         }
     }
 
-    double fps_calc(std::chrono::steady_clock::time_point& last_time_point, bool log = false) {
-        auto time_point_now = std::chrono::steady_clock::now();
-        long delta_time =
-            std::chrono::duration_cast<std::chrono::microseconds>(time_point_now - last_time_point).count();
-        last_time_point = time_point_now;
-
-        double fps = 1000000.00 / static_cast<double>(delta_time);
-        if (log) {
-            RCLCPP_INFO(logger_, "fps = %8.3lf", fps);
-        }
-        return fps;
-    }
-
     void identify() {
         while (true) {
             cv::Mat display_image;
@@ -116,36 +97,10 @@ private:
                 continue;
             }
 
-            last_processed_image_id_   = image_id;
-            cv::Mat preprocessed_image = preprocess(display_image);
-            std::vector<std::vector<cv::Point>> contours;
-            std::vector<cv::Vec4i> hierarchy;
-            cv::findContours(preprocessed_image, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+            last_processed_image_id_                = image_id;
+            cv::Mat preprocessed_image              = preprocess(display_image, cv::COLOR_RGB2HSV);
+            std::vector<cv::Point> possible_targets = first_filter(preprocessed_image, display_image);
 
-            for (const auto& contour : contours) {
-                double area = cv::contourArea(contour);
-                if (area <= 64) {
-                    continue;
-                }
-
-                double perimeter        = cv::arcLength(contour, true);
-                cv::RotatedRect minRect = cv::minAreaRect(contour);
-                cv::Point2f rectPoints[4];
-                minRect.points(rectPoints);
-
-                double a = sqrt(pow(rectPoints[1].x - rectPoints[0].x, 2) + pow(rectPoints[1].y - rectPoints[0].y, 2));
-                double b = sqrt(pow(rectPoints[1].x - rectPoints[2].x, 2) + pow(rectPoints[1].y - rectPoints[2].y, 2));
-
-                if (perimeter > 2 * (a + b) || a / b > 1.5 || b / a > 1.5) {
-                    continue;
-                }
-                for (int i = 0; i < 4; i++) {
-                    cv::line(display_image, rectPoints[i], rectPoints[(i + 1) % 4], cv::Scalar(255, 0, 255), 1);
-                }
-            }
-            int rows      = display_image.rows;
-            int half_cols = display_image.cols / 2;
-            cv::line(display_image, cv::Point(half_cols, 0), cv::Point(half_cols, rows), cv::Scalar(255, 0, 255), 1);
             double fps = fps_calc(process_last_time_point_);
             {
                 std::lock_guard<std::mutex> lock(image_process_mtx_);
@@ -153,26 +108,90 @@ private:
                 identify_fps_            = fps;
                 the_latest_processed_id_ = image_id;
             }
-            cv::imshow("display", display_image);
-            cv::waitKey(1);
         }
     }
 
-    cv::Mat preprocess(const cv::Mat& input) {
+    double fps_calc(std::chrono::steady_clock::time_point& last_time_point, bool log = false) {
+        auto time_point_now = std::chrono::steady_clock::now();
+        long delta_time =
+            std::chrono::duration_cast<std::chrono::microseconds>(time_point_now - last_time_point).count();
+        last_time_point = time_point_now;
+
+        double fps = 1000000.00 / static_cast<double>(delta_time);
+        if (log) {
+            RCLCPP_INFO(logger_, "fps = %8.3lf", fps);
+        }
+        return fps;
+    }
+
+    cv::Mat preprocess(const cv::Mat& input, int code) {
         cv::Mat process;
-        cv::cvtColor(input, process, cv::COLOR_RGB2HLS);
-        cv::inRange(process, lower_limit_, upper_limit_, process);
+        cv::cvtColor(input, process, code);
+        cv::Scalar lower_limit;
+        cv::Scalar upper_limit;
 
-        static cv::Mat open_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
-        cv::morphologyEx(process, process, cv::MORPH_OPEN, open_kernel);
+        switch (code) {
+        case cv::COLOR_RGB2HLS:
+            lower_limit = cv::Scalar(50, 80, 128);
+            upper_limit = cv::Scalar(70, 160, 255);
+            break;
 
-        static cv::Mat dilate_kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
-        cv::dilate(process, process, dilate_kernel);
+        case cv::COLOR_RGB2HSV:
+            lower_limit = cv::Scalar(40, 50, 200);
+            upper_limit = cv::Scalar(50, 255, 255);
+            break;
+
+        case cv::COLOR_RGB2BGR:
+            lower_limit = cv::Scalar(0, 180, 0);
+            upper_limit = cv::Scalar(80, 255, 80);
+            break;
+
+        default: RCLCPP_WARN(logger_, "VisionProcess::preprocess : invalid color_code"); break;
+        }
+
+        cv::inRange(input, lower_limit, upper_limit, process);
+        static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
+        cv::morphologyEx(process, process, cv::MORPH_OPEN, kernel);
+        cv::dilate(process, process, kernel);
+
         return process;
     }
 
-    // pre_process resources
-    cv::Scalar upper_limit_, lower_limit_;
+    static std::vector<cv::Point> first_filter(cv::Mat& process, cv::Mat& display) {
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::findContours(process, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        std::vector<cv::Point> possible_targets;
+        for (const auto& contour : contours) {
+            double area = cv::contourArea(contour);
+            if (area <= 64) {
+                continue;
+            }
+
+            double perimeter        = cv::arcLength(contour, true);
+            cv::RotatedRect minRect = cv::minAreaRect(contour);
+            cv::Point2f rectPoints[4];
+            minRect.points(rectPoints);
+
+            double a = sqrt(pow(rectPoints[1].x - rectPoints[0].x, 2) + pow(rectPoints[1].y - rectPoints[0].y, 2));
+            double b = sqrt(pow(rectPoints[1].x - rectPoints[2].x, 2) + pow(rectPoints[1].y - rectPoints[2].y, 2));
+
+            if (perimeter > 2 * (a + b) || a / b > 1.5 || b / a > 1.5) {
+                continue;
+            }
+            for (int i = 0; i < 4; i++) {
+                cv::line(display, rectPoints[i], rectPoints[(i + 1) % 4], cv::Scalar(255, 0, 255), 1);
+            }
+            possible_targets.emplace_back(minRect.center);
+        }
+
+        int rows      = display.rows;
+        int half_cols = display.cols / 2;
+        cv::line(display, cv::Point(half_cols, 0), cv::Point(half_cols, rows), cv::Scalar(255, 0, 255), 1);
+
+        return possible_targets;
+    }
 
     // image_capture resources
     hikcamera::ImageCapturer::CameraProfile camera_profile_;
