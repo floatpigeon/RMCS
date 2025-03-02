@@ -48,7 +48,7 @@ public:
         }
         {
             std::lock_guard<std::mutex> lock(image_process_mtx_);
-            *output_image_ = latest_display_image_;
+            *output_image_ = latest_display_image_buffer_;
         }
         double update_fps = fps_calc(update_last_time_point_, false);
 
@@ -97,16 +97,17 @@ private:
                 continue;
             }
 
-            last_processed_image_id_                = image_id;
-            cv::Mat preprocessed_image              = preprocess(display_image, cv::COLOR_RGB2HSV);
-            std::vector<cv::Point> possible_targets = first_filter(preprocessed_image, display_image);
+            last_processed_image_id_   = image_id;
+            cv::Mat preprocessed_image = preprocess(display_image, cv::COLOR_RGB2HLS);
+            auto possible_targets      = first_filter(preprocessed_image, display_image);
 
             double fps = fps_calc(process_last_time_point_);
             {
                 std::lock_guard<std::mutex> lock(image_process_mtx_);
-                latest_display_image_    = display_image;
-                identify_fps_            = fps;
-                the_latest_processed_id_ = image_id;
+                latest_display_image_buffer_   = display_image;
+                possible_target_points_buffer_ = possible_targets;
+                identify_fps_                  = fps;
+                the_latest_processed_id_       = image_id;
             }
         }
     }
@@ -193,6 +194,15 @@ private:
         return possible_targets;
     }
 
+    rclcpp::Logger logger_;
+    std::thread camera_read_thread_, image_process_thread_;
+    std::mutex camera_read_mtx_, image_process_mtx_;
+
+    cv::Mat latest_display_image_buffer_;
+    std::vector<cv::Point> possible_target_points_buffer_;
+    OutputInterface<cv::Mat> output_image_;
+    OutputInterface<std::vector<cv::Point>> output_possible_target_points_;
+
     // image_capture resources
     hikcamera::ImageCapturer::CameraProfile camera_profile_;
     std::unique_ptr<hikcamera::ImageCapturer> image_capture_;
@@ -207,15 +217,8 @@ private:
     std::chrono::steady_clock::time_point process_last_time_point_;
     double camera_fps_, identify_fps_;
 
-    rclcpp::Logger logger_;
-    std::thread camera_read_thread_, image_process_thread_;
-    std::mutex camera_read_mtx_, image_process_mtx_;
-
-    cv::Mat latest_display_image_;
-    OutputInterface<cv::Mat> output_image_;
-
     // debug resources
-    int the_latest_processed_id_;
+    int the_latest_processed_id_; //  To check if there is frame drop
 };
 } // namespace rmcs_core::controller::dartlauncher
 
