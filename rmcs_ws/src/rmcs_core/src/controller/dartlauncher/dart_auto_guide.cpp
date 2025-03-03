@@ -8,27 +8,33 @@
 
 namespace rmcs_core::controller::dartlauncher {
 
-class DartAutoAim
+class DartAutoGuide
     : public rmcs_executor::Component
     , public rclcpp::Node {
 public:
-    DartAutoAim()
+    DartAutoGuide()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {}
 
     void update() override {}
 
 private:
+    void target_selector() {}
     rclcpp::Logger logger_;
 
-    InputInterface<std::vector<cv::Point>> input_possible_target_points_;
+    InputInterface<std::vector<cv::Point>> input_possible_target_points_; // from vision_process
     OutputInterface<Eigen::Vector2d> output_error_vector_;
+
+    // Status of each controller
+    bool angle_control_enable_ = false;
+    bool friction_enable_      = false;
+    bool filling_enable_       = false;
 };
 
 } // namespace rmcs_core::controller::dartlauncher
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::DartAutoAim, rmcs_executor::Component)
+PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::DartAutoGuide, rmcs_executor::Component)
 
 /*
 镖架制导的主控模块，包含目标选择、自主火控
