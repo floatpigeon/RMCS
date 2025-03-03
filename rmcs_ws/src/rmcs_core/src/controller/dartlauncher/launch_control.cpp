@@ -15,7 +15,7 @@ public:
         second_friction_default_velocity_ = get_parameter("second_default_velocity").as_double();
 
         register_input("/dart/control_command/friction_enable", friction_enable_);
-        register_input("/dart/inital_launcher_velocity", input_inital_launch_velocity_);
+        register_input("/dart/auto_guide/inital_launcher_velocity", input_inital_launch_velocity_);
 
         register_output("/dart/first_friction/control_velocity", first_friction_working_velocity_, nan);
         register_output("/dart/second_friction/control_velocity", second_friction_working_velocity_, nan);
@@ -53,8 +53,8 @@ private:
     double first_friction_default_velocity_;
     double second_friction_default_velocity_;
 
-    InputInterface<bool> friction_enable_;                    // from dart_auto_guide
-    InputInterface<double> input_inital_launch_velocity_;     // from dart_auto_guide,unit: m/s
+    InputInterface<bool> friction_enable_;                    // from dart_auto_guide or dart_manual_control
+    InputInterface<double> input_inital_launch_velocity_;     // from dart_auto_guide or dart_manual_control,unit: m/s
 
     OutputInterface<double> first_friction_working_velocity_; // close to filling direction called first
     OutputInterface<double> second_friction_working_velocity_;

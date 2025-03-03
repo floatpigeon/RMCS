@@ -1,6 +1,8 @@
 #include <cstdint>
+#include <eigen3/Eigen/Dense>
 #include <memory>
 
+#include "hardware/device/bmi088.hpp"
 #include "hardware/device/dji_motor.hpp"
 #include "hardware/device/dr16.hpp"
 #include "librmcs/client/cboard.hpp"
@@ -36,9 +38,9 @@ public:
 
         Conveyor_motor_.configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
 
-        yaw_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.enable_multi_turn_angle());
-        pitch_left_motor.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
-        pitch_right_motor.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
+        yaw_angle_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.enable_multi_turn_angle());
+        pitch_left_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
+        pitch_right_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
     }
 
     void update() override {
@@ -55,9 +57,9 @@ public:
         can_commands[3] = 0;
         transmit_buffer_.add_can1_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
 
-        can_commands[0] = pitch_left_motor.generate_command();
-        can_commands[1] = pitch_right_motor.generate_command();
-        can_commands[2] = yaw_motor_.generate_command();
+        can_commands[0] = pitch_left_motor_.generate_command();
+        can_commands[1] = pitch_right_motor_.generate_command();
+        can_commands[2] = yaw_angle_motor_.generate_command();
         can_commands[3] = 0;
         transmit_buffer_.add_can1_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
 
@@ -83,9 +85,14 @@ private:
         for (auto& motor : friction_motors_)
             motor.update_status();
         Conveyor_motor_.update_status();
-        pitch_left_motor.update_status();
-        pitch_right_motor.update_status();
-        yaw_motor_.update_status();
+        pitch_left_motor_.update_status();
+        pitch_right_motor_.update_status();
+        yaw_angle_motor_.update_status();
+    }
+
+    void update_imu() {
+        imu_.update_status();
+        Eigen::Quaterniond dart_imu_pose{imu_.q0(), imu_.q1(), imu_.q2(), imu_.q3()};
     }
 
 protected:
@@ -96,13 +103,13 @@ protected:
             return;
 
         if (can_id == 0x201) {
-            auto& motor = pitch_left_motor;
+            auto& motor = pitch_left_motor_;
             motor.store_status(can_data);
         } else if (can_id == 0x202) {
-            auto& motor = pitch_right_motor;
+            auto& motor = pitch_right_motor_;
             motor.store_status(can_data);
         } else if (can_id == 0x203) {
-            auto& motor = yaw_motor_;
+            auto& motor = yaw_angle_motor_;
             motor.store_status(can_data);
         }
     }
@@ -131,12 +138,12 @@ protected:
         }
     }
 
-    // void uart1_receive_callback();
-    // void uart2_receive_callback();
-
     void dbus_receive_callback(const std::byte* uart_data, uint8_t uart_data_length) override {
         dr16_.store_status(uart_data, uart_data_length);
     }
+
+    // void uart1_receive_callback();
+    // void uart2_receive_callback();
 
 private:
     rclcpp::Logger logger_;
@@ -154,17 +161,18 @@ private:
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
 
     device::DjiMotor friction_motors_[4]{
-        {*this, *dart_command_, "/dart/friction_lf"},
-        {*this, *dart_command_, "/dart/friction_lb"},
-        {*this, *dart_command_, "/dart/friction_rb"},
-        {*this, *dart_command_, "/dart/friction_rf"}
+        {*this, *dart_command_,   "/dart/first_left_friction"},
+        {*this, *dart_command_,  "/dart/first_right_friction"},
+        {*this, *dart_command_,  "/dart/second_left_friction"},
+        {*this, *dart_command_, "/dart/second_right_friction"}
     };
     device::DjiMotor Conveyor_motor_{*this, *dart_command_, "/dart/conveyor"};
-    device::DjiMotor yaw_motor_{*this, *dart_command_, "/dart/yaw"};
-    device::DjiMotor pitch_left_motor{*this, *dart_command_, "/dart/pitch_left"};
-    device::DjiMotor pitch_right_motor{*this, *dart_command_, "/dart/pitch_right"};
+    device::DjiMotor yaw_angle_motor_{*this, *dart_command_, "/dart/yaw_angle"};
+    device::DjiMotor pitch_left_motor_{*this, *dart_command_, "/dart/pitch_left"};
+    device::DjiMotor pitch_right_motor_{*this, *dart_command_, "/dart/pitch_right"};
 
     device::Dr16 dr16_{*this};
+    device::Bmi088 imu_{1000, 0.2, 0.0};
 
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 };
