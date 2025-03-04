@@ -62,7 +62,16 @@
   <class type="rmcs_core::referee::app::ui::Hero" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
-  <class type="rmcs_core::controller::dartlauncher::DartLauncher" base_class_type="rmcs_executor::Component">
+  <class type="rmcs_core::hardware::DartLauncher" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::dartlauncher::DartManualControl" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::dartlauncher::LaunchControl" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::dartlauncher::AngleControl" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
   <class type="rmcs_core::controller::pid::PairedPidController" base_class_type="rmcs_executor::Component">

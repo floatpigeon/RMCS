@@ -1,0 +1,28 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::DartLauncher -> dart_launcher_hardware
+      - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
+      # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
+
+      - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
+      - rmcs_core::controller::dartlauncher::AngleControl -> angle_control
+
+
+dart_launcher_hardware:
+  ros__parameters:
+    usb_pid: 0xc049
+
+dart_master_control:
+  ros__parameters:
+    limit_velocity: 30.0
+
+launch_control:
+  ros__parameters:
+    first_default_velicity: 600.00
+    second_default_velocity: 400.00
+
+angle_control:
+  ros__parameters:
+    auto_mode: false

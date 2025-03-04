@@ -14,8 +14,8 @@ public:
         first_friction_default_velocity_  = get_parameter("first_default_velicity").as_double();
         second_friction_default_velocity_ = get_parameter("second_default_velocity").as_double();
 
-        register_input("/dart/control_command/friction_enable", friction_enable_);
-        register_input("/dart/auto_guide/inital_launcher_velocity", input_inital_launch_velocity_);
+        register_input("/dart/master_control/friction_command", friction_enable_);
+        register_input("/dart/master_control/friction_control_velocity", input_dart_launch_velocity_);
 
         register_output("/dart/first_friction/control_velocity", first_friction_working_velocity_, nan);
         register_output("/dart/second_friction/control_velocity", second_friction_working_velocity_, nan);
@@ -36,12 +36,12 @@ private:
     }
 
     void update_friction_velocitys() {
-        if (*input_inital_launch_velocity_ == nan) {
+        if (*input_dart_launch_velocity_ == nan) {
             *first_friction_working_velocity_  = first_friction_default_velocity_;
             *second_friction_working_velocity_ = second_friction_default_velocity_;
         } else {
             // 需要测试实际初速和摩擦轮转速的换算关系，当前先按理想情况计算
-            double launch_rotation_speed       = *input_inital_launch_velocity_ / 0.05;
+            double launch_rotation_speed       = *input_dart_launch_velocity_ / 0.05;
             *second_friction_working_velocity_ = launch_rotation_speed;
             *first_friction_working_velocity_  = launch_rotation_speed + 200;
         }
@@ -54,7 +54,7 @@ private:
     double second_friction_default_velocity_;
 
     InputInterface<bool> friction_enable_;                    // from dart_auto_guide or dart_manual_control
-    InputInterface<double> input_inital_launch_velocity_;     // from dart_auto_guide or dart_manual_control,unit: m/s
+    InputInterface<double> input_dart_launch_velocity_;       // from dart_auto_guide or dart_manual_control,unit: m/s
 
     OutputInterface<double> first_friction_working_velocity_; // close to filling direction called first
     OutputInterface<double> second_friction_working_velocity_;

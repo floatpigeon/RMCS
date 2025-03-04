@@ -46,6 +46,7 @@ public:
     void update() override {
         dr16_.update_status();
         update_motors();
+        update_imu();
     }
 
     void command_update() {

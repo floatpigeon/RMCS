@@ -16,8 +16,8 @@ public:
     AngleControl()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
-        register_input("/dart/control_command/angle_control_enable", angle_control_enable_);
-        register_input("/dart/auto_guide/angle_control_vector", angle_control_vector_);
+        register_input("/dart/master_control/angle_command", angle_control_enable_);
+        register_input("/dart/master_control/angle_control_vector", angle_control_vector_);
 
         register_output("/dart/yaw_angle/control_velocity", yaw_control_velocity_, nan);
         register_output("/dart/pitch_angle/control_velocity", pitch_control_velocity_, nan);
