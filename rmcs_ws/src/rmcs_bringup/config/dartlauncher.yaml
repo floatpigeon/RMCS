@@ -5,6 +5,7 @@ rmcs_executor:
       - rmcs_core::hardware::DartLauncher -> dart_launcher_hardware
       - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
       # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
+      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
 
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
       - rmcs_core::controller::dartlauncher::AngleControl -> angle_control
@@ -17,6 +18,12 @@ dart_launcher_hardware:
 dart_master_control:
   ros__parameters:
     limit_velocity: 30.0
+
+vision_process:
+  ros__parameters:
+    invert_image: false
+    exposure_time: 3000
+    gain: 0.00
 
 launch_control:
   ros__parameters:

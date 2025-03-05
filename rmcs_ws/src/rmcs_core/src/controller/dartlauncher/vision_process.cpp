@@ -34,27 +34,29 @@ public:
 
         image_process_thread_ = std::thread(&VisionProcess::identify, this);
 
-        register_output("/dart/camera_image", output_image_);
+        register_output("/dart/visiob/camera_image", output_latest_display_image_);
+        register_output("/dart/vision/latest_processed_image_id", output_latest_processed_image_id_, -1);
+        register_output("/dart/vision/possible_points", output_possible_target_points_, std::vector<cv::Point>());
     }
 
     void update() override {
         double camera_fps, identify_fps;
-        int the_id;
         {
             std::lock_guard<std::mutex> lock(camera_read_mtx_);
-            camera_fps   = camera_fps_;
-            identify_fps = identify_fps_;
-            the_id       = the_latest_processed_id_;
+            camera_fps                         = camera_fps_;
+            identify_fps                       = identify_fps_;
+            *output_latest_processed_image_id_ = the_latest_processed_id_;
         }
         {
             std::lock_guard<std::mutex> lock(image_process_mtx_);
-            *output_image_ = latest_display_image_buffer_;
+            *output_latest_display_image_   = latest_display_image_buffer_;
+            *output_possible_target_points_ = possible_target_points_buffer_;
         }
         double update_fps = fps_calc(update_last_time_point_, false);
 
         RCLCPP_INFO(
             logger_, "fps:update:%8.3lf,camera:%8.3lf,identify:%8.3lf,image_id:%5d", update_fps, camera_fps,
-            identify_fps, the_id);
+            identify_fps, *output_latest_processed_image_id_);
     }
 
 private:
@@ -72,7 +74,7 @@ private:
                 std::lock_guard<std::mutex> lock(camera_read_mtx_);
                 camera_latest_image_ = reading;
                 camera_fps_          = fps;
-                latest_image_id_     = (latest_image_id_ + 1) % 100;
+                latest_image_id_     = (latest_image_id_ + 1) % 300;
             }
         }
     }
@@ -198,9 +200,11 @@ private:
     std::thread camera_read_thread_, image_process_thread_;
     std::mutex camera_read_mtx_, image_process_mtx_;
 
+    int the_latest_processed_id_;
     cv::Mat latest_display_image_buffer_;
     std::vector<cv::Point> possible_target_points_buffer_;
-    OutputInterface<cv::Mat> output_image_;
+    OutputInterface<cv::Mat> output_latest_display_image_;
+    OutputInterface<int> output_latest_processed_image_id_;
     OutputInterface<std::vector<cv::Point>> output_possible_target_points_;
 
     // image_capture resources
@@ -216,9 +220,6 @@ private:
     std::chrono::steady_clock::time_point camera_last_time_point_;
     std::chrono::steady_clock::time_point process_last_time_point_;
     double camera_fps_, identify_fps_;
-
-    // debug resources
-    int the_latest_processed_id_; //  To check if there is frame drop
 };
 } // namespace rmcs_core::controller::dartlauncher
 
