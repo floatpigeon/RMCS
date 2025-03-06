@@ -26,7 +26,9 @@ public:
         register_output("/dart/master_control/friction_control_velocity", output_dart_launch_velocity_, nan);
         register_output("/dart/master_control/angle_command", output_angle_control_enable_, false);
         register_output("/dart/master_control/angle_control_vector", output_angle_control_, Eigen::Vector2d::Zero());
+
         register_output("/dart/master_control/filling_command", output_dart_filling_enable_, false);
+        register_output("/dart/master_control/vision_guide_command", output_dart_vision_guide_enbale_, false);
     }
 
     void update() override {
@@ -58,11 +60,12 @@ private:
         if (switch_left_ == Switch::UP || switch_right_ == Switch::MIDDLE) {
             filling_enable_ = true;
         }
+        *output_dart_vision_guide_enbale_ = false;
     }
 
     void update_output_control_values() {
-        double pitch_control_input_ = 30.0 * input_joystick_right_->x();
-        double yaw_control_input_   = 30.0 * input_joystick_right_->y();
+        double pitch_control_input_ = 30.0 * input_joystick_left_->x();
+        double yaw_control_input_   = 30.0 * input_joystick_left_->y();
 
         output_angle_control_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
         output_angle_control_->y() = std::max(-limit_velocity, std::min(limit_velocity, pitch_control_input_));
@@ -91,6 +94,7 @@ private:
     OutputInterface<bool> output_friction_enable_;
     OutputInterface<double> output_dart_launch_velocity_;
     OutputInterface<bool> output_dart_filling_enable_;
+    OutputInterface<bool> output_dart_vision_guide_enbale_;
 };
 } // namespace rmcs_core::controller::dartlauncher
 

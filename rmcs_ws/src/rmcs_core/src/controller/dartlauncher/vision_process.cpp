@@ -34,7 +34,7 @@ public:
 
         image_process_thread_ = std::thread(&VisionProcess::identify, this);
 
-        register_output("/dart/visiob/camera_image", output_latest_display_image_);
+        register_output("/dart/vision/camera_image", output_latest_display_image_);
         register_output("/dart/vision/latest_processed_image_id", output_latest_processed_image_id_, -1);
         register_output("/dart/vision/possible_points", output_possible_target_points_, std::vector<cv::Point>());
     }
@@ -54,9 +54,11 @@ public:
         }
         double update_fps = fps_calc(update_last_time_point_, false);
 
-        RCLCPP_INFO(
-            logger_, "fps:update:%8.3lf,camera:%8.3lf,identify:%8.3lf,image_id:%5d", update_fps, camera_fps,
-            identify_fps, *output_latest_processed_image_id_);
+        if (update_fps < 750) {
+            RCLCPP_INFO(
+                logger_, "fps:update:%8.3lf,camera:%8.3lf,identify:%8.3lf,image_id:%5d", update_fps, camera_fps,
+                identify_fps, *output_latest_processed_image_id_);
+        }
     }
 
 private:
