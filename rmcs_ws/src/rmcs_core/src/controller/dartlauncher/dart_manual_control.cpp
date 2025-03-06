@@ -22,14 +22,11 @@ public:
         register_input("/remote/joystick/left", input_joystick_left_, false);
         register_input("/remote/joystick/right", input_joystick_right_, false);
 
-        register_input("/dart/conveyor/velocity", input_conveyor_velocity_);
-        register_output("/dart/conveyor/control_velocity", output_conveyor_control_velocity_, nan);
-
         register_output("/dart/master_control/friction_command", output_friction_enable_, false);
         register_output("/dart/master_control/friction_control_velocity", output_dart_launch_velocity_, nan);
         register_output("/dart/master_control/angle_command", output_angle_control_enable_, false);
-        register_output(
-            "/dart/master_control/angle_control_vector", output_angle_control_vector_, Eigen::Vector2d::Zero());
+        register_output("/dart/master_control/angle_control_vector", output_angle_control_, Eigen::Vector2d::Zero());
+        register_output("/dart/master_control/filling_command", output_dart_filling_enable_, false);
     }
 
     void update() override {
@@ -38,10 +35,6 @@ public:
         *output_angle_control_enable_ = angle_control_enable_;
 
         update_output_control_values();
-
-        if (filling_enable_) {
-            dart_filling_control();
-        }
     }
 
 private:
@@ -50,32 +43,20 @@ private:
         switch_left_  = *input_switch_left_;
         switch_right_ = *input_switch_right_;
 
-        if ((switch_left_ == Switch::DOWN && switch_right_ == Switch::DOWN) || switch_left_ == Switch::UNKNOWN
-            || switch_right_ == Switch::UNKNOWN) {
-            angle_control_enable_ = false;
-            friction_enable_      = false;
-            filling_enable_       = false;
-        }
+        angle_control_enable_ = false;
+        friction_enable_      = false;
+        filling_enable_       = false;
 
         if (switch_left_ == Switch::UP && switch_right_ == Switch::UP) {
             angle_control_enable_ = true;
-        } else {
-            angle_control_enable_ = false;
         }
 
         if (switch_right_ == Switch::MIDDLE || switch_right_ == Switch::UP) {
             friction_enable_ = true;
-        } else {
-            friction_enable_ = false;
         }
 
-        if (switch_right_ == Switch::MIDDLE) {
-            if (switch_left_ == Switch::UP) {
-                filling_enable_ = true;
-            }
-        } else {
-            filling_enable_     = false;
-            conveyor_direction_ = -1;
+        if (switch_left_ == Switch::UP || switch_right_ == Switch::MIDDLE) {
+            filling_enable_ = true;
         }
     }
 
@@ -83,39 +64,15 @@ private:
         double pitch_control_input_ = 30.0 * input_joystick_right_->x();
         double yaw_control_input_   = 30.0 * input_joystick_right_->y();
 
-        output_angle_control_vector_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
-        output_angle_control_vector_->y() = std::max(-limit_velocity, std::min(limit_velocity, pitch_control_input_));
+        output_angle_control_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
+        output_angle_control_->y() = std::max(-limit_velocity, std::min(limit_velocity, pitch_control_input_));
 
         *output_dart_launch_velocity_ = nan;
-    }
-
-    void dart_filling_control() {
-        if (conveyor_is_stable_ && *input_conveyor_velocity_ == 0) {
-            if (conveyor_direction_ > 0) {
-                launch_count_++;
-            }
-            conveyor_is_stable_ = false;
-            conveyor_direction_ = -1 * conveyor_direction_;
-        }
-
-        if (abs(*input_conveyor_velocity_) >= 10.0) {
-            conveyor_is_stable_ = true;
-        }
-
-        if (launch_count_ == 2) {
-            filling_enable_ = false;
-        }
-
-        *output_conveyor_control_velocity_ = filling_enable_ ? 100 * conveyor_direction_ : nan;
     }
 
     rclcpp::Logger logger_;
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
     double limit_velocity;
-
-    int conveyor_direction_  = -1;
-    int launch_count_        = 0;
-    bool conveyor_is_stable_ = false;
 
     bool angle_control_enable_ = false;
     bool friction_enable_      = false;
@@ -130,12 +87,10 @@ private:
     InputInterface<Eigen::Vector2d> input_joystick_right_;
 
     OutputInterface<bool> output_angle_control_enable_;
-    OutputInterface<Eigen::Vector2d> output_angle_control_vector_;
+    OutputInterface<Eigen::Vector2d> output_angle_control_;
     OutputInterface<bool> output_friction_enable_;
     OutputInterface<double> output_dart_launch_velocity_;
-
-    InputInterface<double> input_conveyor_velocity_;
-    OutputInterface<double> output_conveyor_control_velocity_;
+    OutputInterface<bool> output_dart_filling_enable_;
 };
 } // namespace rmcs_core::controller::dartlauncher
 

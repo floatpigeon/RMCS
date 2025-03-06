@@ -29,6 +29,7 @@ launch_control:
   ros__parameters:
     first_default_velicity: 600.00
     second_default_velocity: 400.00
+    velocity_error: 200 # waiting for experiment
 
 angle_control:
   ros__parameters:

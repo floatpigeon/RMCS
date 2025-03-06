@@ -193,6 +193,8 @@ private:
         int half_cols = display.cols / 2;
         cv::line(display, cv::Point(half_cols, 0), cv::Point(half_cols, rows), cv::Scalar(255, 0, 255), 1);
 
+        cv::imshow("display", display);
+        cv::waitKey(1);
         return possible_targets;
     }
 
