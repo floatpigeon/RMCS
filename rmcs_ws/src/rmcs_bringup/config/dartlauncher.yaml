@@ -6,7 +6,7 @@ rmcs_executor:
       - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
       # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
       - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
-      - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
+      # - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
 
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
       - rmcs_core::controller::dartlauncher::AngleControl -> angle_control

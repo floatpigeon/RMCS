@@ -1,3 +1,6 @@
+/*
+方法已经基本完成，运行逻辑尚未完备
+*/
 #include "controller/dartlauncher/dart_resources.hpp"
 #include <chrono>
 #include <mutex>
@@ -92,8 +95,8 @@ private:
 
                 {
                     std::lock_guard<std::mutex> lock(buffer_mtx_);
-                    track_work_flag_ = true;
-                    identify_enable  = false;
+                    track_work_flag_    = true;
+                    identify_work_flag_ = false;
                 }
             }
         }

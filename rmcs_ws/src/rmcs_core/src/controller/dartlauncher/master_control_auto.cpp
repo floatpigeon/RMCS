@@ -4,7 +4,7 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/node_options.hpp>
 #include <rmcs_executor/component.hpp>
-#include <vector>
+#include <switch.hpp>
 
 namespace rmcs_core::controller::dartlauncher {
 
@@ -14,21 +14,35 @@ class DartAutoGuide
 public:
     DartAutoGuide()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
-        , logger_(get_logger()) {}
+        , logger_(get_logger()) {
+        limit_velocity = get_parameter("limit_velocity").as_double();
+    }
 
     void update() override {}
 
 private:
-    void target_selector() {}
     rclcpp::Logger logger_;
+    static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+    double limit_velocity;
 
-    InputInterface<std::vector<cv::Point>> input_possible_target_points_; // from vision_process
-    OutputInterface<Eigen::Vector2d> output_error_vector_;
-
-    // Status of each controller
     bool angle_control_enable_ = false;
     bool friction_enable_      = false;
     bool filling_enable_       = false;
+
+    rmcs_msgs::Switch switch_left_  = rmcs_msgs::Switch::UNKNOWN;
+    rmcs_msgs::Switch switch_right_ = rmcs_msgs::Switch::UNKNOWN;
+
+    InputInterface<cv::Point> input_target_position_;
+    InputInterface<rmcs_msgs::Switch> input_switch_left_;
+    InputInterface<rmcs_msgs::Switch> input_switch_right_;
+    InputInterface<Eigen::Vector2d> input_joystick_left_;
+    InputInterface<Eigen::Vector2d> input_joystick_right_;
+
+    OutputInterface<bool> output_angle_control_enable_;
+    OutputInterface<Eigen::Vector2d> output_angle_control_;
+    OutputInterface<bool> output_friction_enable_;
+    OutputInterface<double> output_dart_launch_velocity_;
+    OutputInterface<bool> output_dart_filling_enable_;
 };
 
 } // namespace rmcs_core::controller::dartlauncher
