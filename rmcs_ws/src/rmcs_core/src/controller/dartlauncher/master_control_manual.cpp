@@ -35,7 +35,6 @@ public:
         update_remote_control_commands();
         *output_friction_enable_      = friction_enable_;
         *output_angle_control_enable_ = angle_control_enable_;
-
         update_output_control_values();
     }
 

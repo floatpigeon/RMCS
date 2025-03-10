@@ -1,10 +1,10 @@
+#include "controller/dartlauncher/image_process_methods.hpp"
 #include "hikcamera/image_capturer.hpp"
 #include <chrono>
 #include <memory>
 #include <mutex>
 #include <opencv2/core.hpp>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
@@ -30,8 +30,8 @@ public:
         camera_profile_.exposure_time = std::chrono::microseconds(get_parameter("exposure_time").as_int());
         camera_profile_.gain          = static_cast<float>(get_parameter("gain").as_double());
         image_capture_                = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
-        camera_read_thread_           = std::thread(&VisionProcess::image_capture, this);
 
+        camera_read_thread_   = std::thread(&VisionProcess::image_capture, this);
         image_process_thread_ = std::thread(&VisionProcess::identify, this);
 
         register_output("/dart/vision/camera_image", output_latest_display_image_);
@@ -45,16 +45,17 @@ public:
             std::lock_guard<std::mutex> lock(camera_read_mtx_);
             camera_fps                         = camera_fps_;
             identify_fps                       = identify_fps_;
-            *output_latest_processed_image_id_ = the_latest_processed_id_;
+            *output_latest_processed_image_id_ = latest_processed_id_;
         }
+
         {
             std::lock_guard<std::mutex> lock(image_process_mtx_);
-            *output_latest_display_image_   = latest_display_image_buffer_;
-            *output_possible_target_points_ = possible_target_points_buffer_;
+            *output_latest_display_image_   = display_image_buffer_;
+            *output_possible_target_points_ = possible_points_buffer_;
         }
-        double update_fps = fps_calc(update_last_time_point_, false);
 
-        if (update_fps < 750) {
+        double update_fps = fps_calc(update_last_time_point_, false);
+        if (false) {
             RCLCPP_INFO(
                 logger_, "fps:update:%8.3lf,camera:%8.3lf,identify:%8.3lf,image_id:%5d", update_fps, camera_fps,
                 identify_fps, *output_latest_processed_image_id_);
@@ -92,26 +93,27 @@ private:
             }
 
             if (image_id == -1) {
-                last_processed_image_id_ = -1;
+                last_image_id_ = -1;
                 std::this_thread::sleep_for(std::chrono::microseconds(1000));
                 continue;
             }
-            if (image_id == last_processed_image_id_) {
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
+            if (image_id == last_image_id_) {
+                std::this_thread::sleep_for(std::chrono::microseconds(10));
                 continue;
             }
 
-            last_processed_image_id_   = image_id;
-            cv::Mat preprocessed_image = preprocess(display_image, cv::COLOR_RGB2HLS);
-            auto possible_targets      = first_filter(preprocessed_image, display_image);
+            auto preprocessed_image = ImageProcessMethods::preprocess(display_image, cv::COLOR_RGB2HLS);
+            last_image_id_          = image_id;
+            auto possible_targets   = ImageProcessMethods::first_filter(preprocessed_image, display_image, true);
+            RCLCPP_INFO(logger_, "possible_target_num:%3zu", possible_targets.size());
 
             double fps = fps_calc(process_last_time_point_);
             {
                 std::lock_guard<std::mutex> lock(image_process_mtx_);
-                latest_display_image_buffer_   = display_image;
-                possible_target_points_buffer_ = possible_targets;
-                identify_fps_                  = fps;
-                the_latest_processed_id_       = image_id;
+                display_image_buffer_   = display_image;
+                possible_points_buffer_ = possible_targets;
+                identify_fps_           = fps;
+                latest_processed_id_    = image_id;
             }
         }
     }
@@ -129,84 +131,13 @@ private:
         return fps;
     }
 
-    cv::Mat preprocess(const cv::Mat& input, int code) {
-        cv::Mat process;
-        cv::cvtColor(input, process, code);
-        cv::Scalar lower_limit;
-        cv::Scalar upper_limit;
-
-        switch (code) {
-        case cv::COLOR_RGB2HLS:
-            lower_limit = cv::Scalar(50, 80, 128);
-            upper_limit = cv::Scalar(70, 160, 255);
-            break;
-
-        case cv::COLOR_RGB2HSV:
-            lower_limit = cv::Scalar(40, 50, 200);
-            upper_limit = cv::Scalar(50, 255, 255);
-            break;
-
-        case cv::COLOR_RGB2BGR:
-            lower_limit = cv::Scalar(0, 180, 0);
-            upper_limit = cv::Scalar(80, 255, 80);
-            break;
-
-        default: RCLCPP_WARN(logger_, "VisionProcess::preprocess : invalid color_code"); break;
-        }
-
-        cv::inRange(input, lower_limit, upper_limit, process);
-        static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
-        cv::morphologyEx(process, process, cv::MORPH_OPEN, kernel);
-        cv::dilate(process, process, kernel);
-
-        return process;
-    }
-
-    static std::vector<cv::Point> first_filter(cv::Mat& process, cv::Mat& display) {
-        std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Vec4i> hierarchy;
-        cv::findContours(process, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-
-        std::vector<cv::Point> possible_targets;
-        for (const auto& contour : contours) {
-            double area = cv::contourArea(contour);
-            if (area <= 64) {
-                continue;
-            }
-
-            double perimeter        = cv::arcLength(contour, true);
-            cv::RotatedRect minRect = cv::minAreaRect(contour);
-            cv::Point2f rectPoints[4];
-            minRect.points(rectPoints);
-
-            double a = sqrt(pow(rectPoints[1].x - rectPoints[0].x, 2) + pow(rectPoints[1].y - rectPoints[0].y, 2));
-            double b = sqrt(pow(rectPoints[1].x - rectPoints[2].x, 2) + pow(rectPoints[1].y - rectPoints[2].y, 2));
-
-            if (perimeter > 2 * (a + b) || a / b > 1.5 || b / a > 1.5) {
-                continue;
-            }
-            for (int i = 0; i < 4; i++) {
-                cv::line(display, rectPoints[i], rectPoints[(i + 1) % 4], cv::Scalar(255, 0, 255), 1);
-            }
-            possible_targets.emplace_back(minRect.center);
-        }
-
-        int rows      = display.rows;
-        int half_cols = display.cols / 2;
-        cv::line(display, cv::Point(half_cols, 0), cv::Point(half_cols, rows), cv::Scalar(255, 0, 255), 1);
-
-        cv::imshow("display", display);
-        cv::waitKey(1);
-        return possible_targets;
-    }
-
     rclcpp::Logger logger_;
     std::thread camera_read_thread_, image_process_thread_;
     std::mutex camera_read_mtx_, image_process_mtx_;
 
-    int the_latest_processed_id_;
-    cv::Mat latest_display_image_buffer_;
-    std::vector<cv::Point> possible_target_points_buffer_;
+    int latest_processed_id_;
+    cv::Mat display_image_buffer_;
+    std::vector<cv::Point> possible_points_buffer_;
     OutputInterface<cv::Mat> output_latest_display_image_;
     OutputInterface<int> output_latest_processed_image_id_;
     OutputInterface<std::vector<cv::Point>> output_possible_target_points_;
@@ -216,8 +147,8 @@ private:
     std::unique_ptr<hikcamera::ImageCapturer> image_capture_;
     bool camera_capture_enable_ = true;
     cv::Mat camera_latest_image_;
-    int latest_image_id_         = -1;
-    int last_processed_image_id_ = -1;
+    int latest_image_id_ = -1;
+    int last_image_id_   = -1;
 
     // fps_calc resources
     std::chrono::steady_clock::time_point update_last_time_point_;

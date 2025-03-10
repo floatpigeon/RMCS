@@ -5,11 +5,25 @@ rmcs_executor:
       - rmcs_core::hardware::DartLauncher -> dart_launcher_hardware
       - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
       # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
-      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
       # - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
 
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
       - rmcs_core::controller::dartlauncher::AngleControl -> angle_control
+
+      - rmcs_core::controller::pid::PidController -> conveyor_velocity_pid_controller
+      - rmcs_core::controller::pid::PairedPidController -> friction_first_velocity_paired_controller
+      - rmcs_core::controller::pid::ErrorPidController -> friction_first_left_pid_controller
+      - rmcs_core::controller::pid::ErrorPidController -> friction_first_right_pid_controller
+      - rmcs_core::controller::pid::PairedPidController -> friction_second_velocity_paired_controller
+      - rmcs_core::controller::pid::ErrorPidController -> friction_second_left_pid_controller
+      - rmcs_core::controller::pid::ErrorPidController -> friction_second_right_pid_controller
+
+      - rmcs_core::controller::pid::PidController -> yaw_velocity_pid_controller
+      - rmcs_core::controller::pid::PairedPidController -> pitch_velocity_sync_controller
+      - rmcs_core::controller::pid::ErrorPidController -> pitch_left_velocity_pid_controller
+      - rmcs_core::controller::pid::ErrorPidController -> pitch_right_velocity_pid_controller
+
 
 
 dart_launcher_hardware:
@@ -24,7 +38,8 @@ vision_process:
   ros__parameters:
     invert_image: false
     exposure_time: 3000
-    gain: 0.00
+    gain: 12.00
+    log_enable: false
 
 launch_control:
   ros__parameters:
@@ -35,3 +50,105 @@ launch_control:
 angle_control:
   ros__parameters:
     auto_mode: false
+
+conveyor_velocity_pid_controller:
+  ros__parameters:
+    measurement: /dart/conveyor/velocity
+    setpoint: /dart/conveyor/control_velocity
+    control: /dart/conveyor/control_torque
+    kp: 0.0034
+    ki: 0.00
+    kd: 0.009373434
+
+friction_first_velocity_paired_controller:
+  ros__parameters:
+    setpoint: /dart/first_friction/control_velocity
+    motor1_measurement: /dart/first_left_friction/velocity
+    motor1_control_error: /dart/first_left_friction/control_error
+    motor2_measurement: /dart/first_right_friction/velocity
+    motor2_control_error: /dart/first_right_friction/control_error
+    sync_compensation: 0.00
+    error_integral_compensation: 0.00
+    log_enable: false
+  
+
+friction_first_left_pid_controller:
+  ros__parameters:
+    measurement: /dart/first_left_friction/control_error
+    control: /dart/first_left_friction/control_torque
+    kp: 200.0
+    ki: 0.00
+    kd: 0.00
+
+friction_first_right_pid_controller:
+  ros__parameters:
+    measurement: /dart/first_right_friction/control_error
+    control: /dart/first_right_friction/control_torque
+    kp: 200.0
+    ki: 0.00
+    kd: 0.00
+
+
+friction_second_velocity_paired_controller:
+  ros__parameters:
+    setpoint: /dart/second_friction/control_velocity
+    motor1_measurement: /dart/second_left_friction/velocity
+    motor1_control_error: /dart/second_left_friction/control_error
+    motor2_measurement: /dart/second_right_friction/velocity
+    motor2_control_error: /dart/second_right_friction/control_error
+    sync_compensation: 0.00
+    error_integral_compensation: 0.00
+    log_enable: false
+
+friction_second_left_pid_controller:
+  ros__parameters:
+    measurement: /dart/second_left_friction/control_error
+    control: /dart/second_left_friction/control_torque
+    kp: 200.0
+    ki: 0.00
+    kd: 0.00
+
+friction_second_right_pid_controller:
+  ros__parameters:
+    measurement: /dart/second_right_friction/control_error
+    control: /dart/second_right_friction/control_torque
+    kp: 200.0
+    ki: 0.00
+    kd: 0.00
+
+yaw_velocity_pid_controller:
+  ros__parameters:
+    measurement: /dart/yaw_angle/velocity
+    setpoint: /dart/yaw_angle/control_velocity
+    control: /dart/yaw_angle/control_torque
+    kp: 0.3036926
+    ki: 0.00
+    kd: 0.009373434
+
+pitch_velocity_sync_controller:
+  ros__parameters:
+    setpoint: /dart/pitch_angle/control_velocity
+    motor1_measurement: /dart/pitch_left/velocity
+    motor1_control_error: /dart/pitch_left/control_error
+    motor2_measurement: /dart/pitch_right/velocity
+    motor2_control_error: /dart/pitch_right/control_error
+    sync_compensation: 0.8
+    error_integral_compensation: 0.1
+    log_enable: false
+
+pitch_left_velocity_pid_controller:
+  ros__parameters:
+    measurement: /dart/pitch_left/control_error
+    control: /dart/pitch_left/control_torque
+    kp: 0.3036926
+    ki: 0.00
+    kd: 0.009373434
+
+pitch_right_velocity_pid_controller:
+  ros__parameters:
+    measurement: /dart/pitch_right/control_error
+    control: /dart/pitch_right/control_torque
+    kp: 0.03436926
+    ki: 0.00
+    kd: 0.009373434
+
