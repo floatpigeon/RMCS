@@ -4,17 +4,17 @@
 #include <rclcpp/logger.hpp>
 namespace rmcs_core::controller::dartlauncher {
 
-class ImageProcessMethods {
+class ImageProcess {
 public:
     static cv::Mat preprocess(const cv::Mat& input, int code) {
-        cv::Mat process;
-        cv::cvtColor(input, process, code);
+        cv::Mat color_mask;
+        cv::cvtColor(input, color_mask, code);
         cv::Scalar lower_limit;
         cv::Scalar upper_limit;
 
         switch (code) {
         case cv::COLOR_RGB2HLS:
-            lower_limit = cv::Scalar(45, 32, 128);
+            lower_limit = cv::Scalar(45, 16, 128);
             upper_limit = cv::Scalar(75, 172, 255);
             break;
 
@@ -31,7 +31,8 @@ public:
         default: break;
         } // 需要多次的实验看看哪种方式稳定性更佳，目前看来RGB是完全用不了的，光线变化一大直接失效
 
-        cv::inRange(process, lower_limit, upper_limit, process);
+        cv::Mat process;
+        cv::inRange(color_mask, lower_limit, upper_limit, process);
         // cv::imshow("range", process);
 
         static cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(9, 9));
