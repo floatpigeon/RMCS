@@ -5,6 +5,8 @@ rmcs_executor:
       - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
       # _ rmcs_core::controller::dartlauncher::MsgProcess -> msg_process
 
+      # - rmcs_core::controller::dartlauncher::DataMonitor -> data_monitor
+
 vision_process:
   ros__parameters:
     invert_image: false
