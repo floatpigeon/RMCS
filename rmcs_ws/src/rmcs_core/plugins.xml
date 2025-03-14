@@ -80,6 +80,9 @@
   <class type="rmcs_core::controller::dartlauncher::VisionProcess" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::controller::dartlauncher::DartVision" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
   <class type="rmcs_core::controller::dartlauncher::TargetTracker" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>

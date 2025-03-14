@@ -27,13 +27,14 @@ public:
         , librmcs::client::CBoard{static_cast<int>(get_parameter("usb_pid").as_int())}
         , logger_(get_logger())
         , dart_command_(create_partner_component<DartCommand>(get_component_name() + "_command", *this))
-        , transmit_buffer_(*this, 16) {
+        , transmit_buffer_(*this, 32)
+        , event_thread_([this]() { handle_events(); }) {
 
         using namespace device;
 
         friction_motors_[0].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
-        friction_motors_[1].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
-        friction_motors_[2].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
+        friction_motors_[1].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
+        friction_motors_[2].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
         friction_motors_[3].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
 
         Conveyor_motor_.configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
@@ -43,6 +44,10 @@ public:
         pitch_right_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
     }
 
+    ~DartLauncher() override {
+        stop_handling_events();
+        event_thread_.join();
+    }
     void update() override {
         dr16_.update_status();
         update_motors();
@@ -56,7 +61,7 @@ public:
         can_commands[1] = 0;
         can_commands[2] = 0;
         can_commands[3] = 0;
-        transmit_buffer_.add_can1_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
+        transmit_buffer_.add_can1_transmission(0x1FE, std::bit_cast<uint64_t>(can_commands));
 
         can_commands[0] = pitch_left_motor_.generate_command();
         can_commands[1] = pitch_right_motor_.generate_command();
@@ -68,7 +73,7 @@ public:
         can_commands[1] = 0;
         can_commands[2] = 0;
         can_commands[3] = 0;
-        transmit_buffer_.add_can2_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
+        transmit_buffer_.add_can2_transmission(0x1FE, std::bit_cast<uint64_t>(can_commands));
 
         can_commands[0] = friction_motors_[0].generate_command();
         can_commands[1] = friction_motors_[1].generate_command();
@@ -176,6 +181,8 @@ private:
     device::Bmi088 imu_{1000, 0.2, 0.0};
 
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+
+    std::thread event_thread_;
 };
 } // namespace rmcs_core::hardware
 

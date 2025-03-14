@@ -1,4 +1,4 @@
-#include "controller/dartlauncher/vision/image_process_methods.hpp"
+#include "controller/dartlauncher/vision/image_process.hpp"
 #include "hikcamera/image_capturer.hpp"
 #include <chrono>
 #include <memory>

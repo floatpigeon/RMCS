@@ -64,7 +64,7 @@ private:
 
     void update_output_control_values() {
         double pitch_control_input_ = 30.0 * input_joystick_left_->x();
-        double yaw_control_input_   = 30.0 * input_joystick_left_->y();
+        double yaw_control_input_   = 50.0 * input_joystick_right_->y();
 
         output_angle_control_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
         output_angle_control_->y() = std::max(-limit_velocity, std::min(limit_velocity, pitch_control_input_));

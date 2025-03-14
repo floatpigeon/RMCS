@@ -47,15 +47,21 @@ public:
 
 private:
     void update_friction_velocitys() {
-        if (*input_dart_launch_velocity_ == nan) {
-            *output_first_friction_velocity_  = first_friction_default_velocity_;
-            *output_second_friction_velocity_ = second_friction_default_velocity_;
-        } else {
-            // 需要测试实际初速和摩擦轮转速的换算关系，当前先按理想情况计算
-            double launch_rotation_speed      = *input_dart_launch_velocity_ / 0.05;
-            *output_second_friction_velocity_ = launch_rotation_speed;
-            *output_first_friction_velocity_  = launch_rotation_speed + 200; // 200这个值具体待测
-        }
+        // if (*input_dart_launch_velocity_ == nan) {
+        //     *output_first_friction_velocity_  = first_friction_default_velocity_;
+        //     *output_second_friction_velocity_ = second_friction_default_velocity_;
+        // } else {
+        //     // 需要测试实际初速和摩擦轮转速的换算关系，当前先按理想情况计算
+        //     double launch_rotation_speed      = *input_dart_launch_velocity_ / 0.05;
+        //     *output_second_friction_velocity_ = launch_rotation_speed;
+        //     *output_first_friction_velocity_  = launch_rotation_speed + 200; // 200这个值具体待测
+        // }
+
+        // *output_first_friction_velocity_  = first_friction_default_velocity_;
+        // *output_second_friction_velocity_ = second_friction_default_velocity_;
+
+        *output_first_friction_velocity_  = nan;
+        *output_second_friction_velocity_ = nan;
     }
 
     void dart_filling_control() {

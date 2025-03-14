@@ -2,6 +2,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 #include <rclcpp/logger.hpp>
+#include <stdexcept>
 namespace rmcs_core::controller::dartlauncher {
 
 class ImageProcess {
@@ -43,6 +44,57 @@ public:
         // cv::waitKey(1);
 
         return process;
+    }
+
+    static cv::Mat pre_process_beta(const cv::Mat& input, int code) {
+        cv::Mat color_mask;
+        cv::cvtColor(input, color_mask, code);
+        cv::Scalar lower_limit;
+        cv::Scalar upper_limit;
+
+        switch (code) {
+        case cv::COLOR_RGB2HLS:
+            lower_limit = cv::Scalar(45, 16, 128);
+            upper_limit = cv::Scalar(75, 172, 255);
+            break;
+
+        case cv::COLOR_RGB2HSV:
+            lower_limit = cv::Scalar(40, 50, 200);
+            upper_limit = cv::Scalar(60, 255, 255);
+            break; // 参数不保真，还没测
+
+        default: throw std::runtime_error("ImageProcess::pre_process: Unacceptable color code"); break;
+        }
+
+        cv::Mat process;
+        cv::inRange(color_mask, lower_limit, upper_limit, process);
+
+        for (int i = 0; i < 3; i++) {
+            cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(i * 2 + 5, i * 2 + 5));
+            cv::morphologyEx(process, process, cv::MORPH_OPEN, kernel);
+            cv::morphologyEx(process, process, cv::MORPH_CLOSE, kernel);
+        }
+        return process;
+    }
+
+    static void first_filter_beta(cv::Mat& binary, cv::Mat& display, bool show = false) {
+        std::vector<cv::Vec3f> circles;
+        cv::HoughCircles(binary, circles, cv::HOUGH_GRADIENT, 1.0, binary.rows / 10.0, 50, 30, 6, 100);
+
+        for (const auto& circle : circles) {
+            cv::Point center(cvRound(circle[0]), cvRound(circle[1]));
+            int radius = cvRound(circle[2]);
+            cv::circle(display, center, radius, cv::Scalar(0, 255, 0), 4);
+            cv::circle(display, center, 3, cv::Scalar(0, 0, 255), 3);
+        }
+
+        if (show) {
+            int rows      = display.rows;
+            int half_cols = display.cols / 2;
+            cv::line(display, cv::Point(half_cols, 0), cv::Point(half_cols, rows), cv::Scalar(255, 0, 255), 1);
+            cv::imshow("display", display);
+            cv::waitKey(1);
+        }
     }
 
     static std::vector<cv::Point> first_filter(cv::Mat& process, cv::Mat& display, bool show = false) {

@@ -5,7 +5,8 @@ rmcs_executor:
       - rmcs_core::hardware::DartLauncher -> dart_launcher_hardware
       - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
       # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
-      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+
+      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
       # - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
 
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
@@ -32,7 +33,7 @@ dart_launcher_hardware:
 
 dart_master_control:
   ros__parameters:
-    limit_velocity: 30.0
+    limit_velocity: 50.0
 
 vision_process:
   ros__parameters:
@@ -43,9 +44,9 @@ vision_process:
 
 launch_control:
   ros__parameters:
-    first_default_velicity: 600.00
-    second_default_velocity: 400.00
-    velocity_error: 200 # waiting for experiment
+    first_default_velicity: 500.00
+    second_default_velocity: 750.00
+    velocity_error: 250.00
 
 angle_control:
   ros__parameters:
@@ -134,7 +135,7 @@ pitch_velocity_sync_controller:
     motor2_control_error: /dart/pitch_right/control_error
     sync_compensation: 0.8
     error_integral_compensation: 0.1
-    log_enable: false
+    log_enable: true
 
 pitch_left_velocity_pid_controller:
   ros__parameters:
@@ -148,7 +149,6 @@ pitch_right_velocity_pid_controller:
   ros__parameters:
     measurement: /dart/pitch_right/control_error
     control: /dart/pitch_right/control_torque
-    kp: 0.03436926
-    ki: 0.00
+    kp: 0.3036926
+    ki: 0.000
     kd: 0.009373434
-
