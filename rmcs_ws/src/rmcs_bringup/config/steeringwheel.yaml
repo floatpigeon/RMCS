@@ -1,0 +1,15 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::SteeringWheel -> steeringwheel_hardware
+
+
+
+steeringwheel_hardware:
+  ros__parameters:
+    usb_pid: 0x000
+    left_front_zero_point: 0.00
+    left_front_zero_point: 0.00
+    left_front_zero_point: 0.00
+    left_front_zero_point: 0.00
