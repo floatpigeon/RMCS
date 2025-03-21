@@ -37,12 +37,17 @@ public:
         if (filling_enable_ == true) {
             dart_filling_control();
         } else if (filling_enable_ == false) {
+            conveyor_working_direction_        = 1;
             *output_conveyor_control_velocity_ = nan;
 
             if (*input_command_dart_filling_enable_ == true) {
                 filling_enable_ = true;
             }
         }
+
+        // RCLCPP_INFO(
+        //     logger_, "convryor_velocity:%5.1lf,direction:%5.1lf,bool:%5d", *output_conveyor_control_velocity_,
+        //     conveyor_working_direction_, *input_command_dart_filling_enable_);
     }
 
 private:
@@ -57,11 +62,11 @@ private:
         //     *output_first_friction_velocity_  = launch_rotation_speed + 200; // 200这个值具体待测
         // }
 
-        // *output_first_friction_velocity_  = first_friction_default_velocity_;
-        // *output_second_friction_velocity_ = second_friction_default_velocity_;
+        *output_first_friction_velocity_  = first_friction_default_velocity_;
+        *output_second_friction_velocity_ = second_friction_default_velocity_;
 
-        *output_first_friction_velocity_  = nan;
-        *output_second_friction_velocity_ = nan;
+        // *output_first_friction_velocity_  = nan;
+        // *output_second_friction_velocity_ = nan;
     }
 
     void dart_filling_control() {
@@ -99,7 +104,7 @@ private:
     bool conveyor_velocity_stable_     = false;
     bool filling_enable_               = false;
     int dart_launch_count_             = 0;
-    double conveyor_working_direction_ = 0.0;
+    double conveyor_working_direction_ = 1.0;
     InputInterface<bool> input_command_dart_filling_enable_; // from dart_auto_guide or dart_manual_control
     InputInterface<double> input_conveyor_velocity_;         // from dart_auto_guide or dart_manual_control
     OutputInterface<double> output_conveyor_control_velocity_;

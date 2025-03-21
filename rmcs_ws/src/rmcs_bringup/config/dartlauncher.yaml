@@ -25,6 +25,8 @@ rmcs_executor:
       - rmcs_core::controller::pid::ErrorPidController -> pitch_left_velocity_pid_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_right_velocity_pid_controller
 
+      - rmcs_core::controller::dart::MessagePublisher -> message_publisher
+
 
 
 dart_launcher_hardware:
@@ -33,7 +35,7 @@ dart_launcher_hardware:
 
 dart_master_control:
   ros__parameters:
-    limit_velocity: 50.0
+    limit_velocity: 60.0
 
 vision_process:
   ros__parameters:
@@ -45,8 +47,8 @@ vision_process:
 launch_control:
   ros__parameters:
     first_default_velicity: 500.00
-    second_default_velocity: 750.00
-    velocity_error: 250.00
+    second_default_velocity: 350.00
+    velocity_error: 0.00
 
 angle_control:
   ros__parameters:
@@ -97,7 +99,7 @@ friction_second_velocity_paired_controller:
     motor1_control_error: /dart/second_left_friction/control_error
     motor2_measurement: /dart/second_right_friction/velocity
     motor2_control_error: /dart/second_right_friction/control_error
-    sync_compensation: 0.00
+    sync_compensation: 0.08
     error_integral_compensation: 0.00
     log_enable: false
 
@@ -133,8 +135,8 @@ pitch_velocity_sync_controller:
     motor1_control_error: /dart/pitch_left/control_error
     motor2_measurement: /dart/pitch_right/velocity
     motor2_control_error: /dart/pitch_right/control_error
-    sync_compensation: 0.8
-    error_integral_compensation: 0.1
+    sync_compensation: 0.01
+    error_integral_compensation: 0.2
     log_enable: true
 
 pitch_left_velocity_pid_controller:
@@ -142,7 +144,7 @@ pitch_left_velocity_pid_controller:
     measurement: /dart/pitch_left/control_error
     control: /dart/pitch_left/control_torque
     kp: 0.3036926
-    ki: 0.00
+    ki: 0.000
     kd: 0.009373434
 
 pitch_right_velocity_pid_controller:
@@ -152,3 +154,9 @@ pitch_right_velocity_pid_controller:
     kp: 0.3036926
     ki: 0.000
     kd: 0.009373434
+
+message_publisher:
+  ros__parameters:
+    camera_enable: false
+    cal_fps_enable: false
+    friction_enable: true

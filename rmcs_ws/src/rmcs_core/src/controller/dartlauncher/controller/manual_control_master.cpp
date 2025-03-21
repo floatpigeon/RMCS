@@ -35,6 +35,7 @@ public:
         update_remote_control_commands();
         *output_friction_enable_      = friction_enable_;
         *output_angle_control_enable_ = angle_control_enable_;
+        *output_dart_filling_enable_  = filling_enable_;
         update_output_control_values();
     }
 
@@ -56,7 +57,7 @@ private:
             friction_enable_ = true;
         }
 
-        if (switch_left_ == Switch::UP || switch_right_ == Switch::MIDDLE) {
+        if (switch_left_ == Switch::UP && switch_right_ == Switch::MIDDLE) {
             filling_enable_ = true;
         }
         *output_dart_vision_guide_enbale_ = false;
@@ -64,7 +65,7 @@ private:
 
     void update_output_control_values() {
         double pitch_control_input_ = 30.0 * input_joystick_left_->x();
-        double yaw_control_input_   = 50.0 * input_joystick_right_->y();
+        double yaw_control_input_   = 60.0 * input_joystick_right_->y();
 
         output_angle_control_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
         output_angle_control_->y() = std::max(-limit_velocity, std::min(limit_velocity, pitch_control_input_));

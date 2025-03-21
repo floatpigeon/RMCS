@@ -37,7 +37,7 @@ public:
         friction_motors_[2].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
         friction_motors_[3].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
 
-        Conveyor_motor_.configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
+        conveyor_motor_.configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
 
         yaw_angle_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.enable_multi_turn_angle());
         pitch_left_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
@@ -69,11 +69,11 @@ public:
         can_commands[3] = 0;
         transmit_buffer_.add_can1_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
 
-        can_commands[0] = Conveyor_motor_.generate_command();
+        can_commands[0] = conveyor_motor_.generate_command();
         can_commands[1] = 0;
         can_commands[2] = 0;
         can_commands[3] = 0;
-        transmit_buffer_.add_can2_transmission(0x1FE, std::bit_cast<uint64_t>(can_commands));
+        transmit_buffer_.add_can2_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
 
         can_commands[0] = friction_motors_[0].generate_command();
         can_commands[1] = friction_motors_[1].generate_command();
@@ -90,7 +90,7 @@ private:
 
         for (auto& motor : friction_motors_)
             motor.update_status();
-        Conveyor_motor_.update_status();
+        conveyor_motor_.update_status();
         pitch_left_motor_.update_status();
         pitch_right_motor_.update_status();
         yaw_angle_motor_.update_status();
@@ -139,7 +139,7 @@ protected:
             auto& motor = friction_motors_[3];
             motor.store_status(can_data);
         } else if (can_id == 0x205) {
-            auto& motor = Conveyor_motor_;
+            auto& motor = conveyor_motor_;
             motor.store_status(can_data);
         }
     }
@@ -172,7 +172,7 @@ private:
         {*this, *dart_command_,  "/dart/second_left_friction"},
         {*this, *dart_command_, "/dart/second_right_friction"}
     };
-    device::DjiMotor Conveyor_motor_{*this, *dart_command_, "/dart/conveyor"};
+    device::DjiMotor conveyor_motor_{*this, *dart_command_, "/dart/conveyor"};
     device::DjiMotor yaw_angle_motor_{*this, *dart_command_, "/dart/yaw_angle"};
     device::DjiMotor pitch_left_motor_{*this, *dart_command_, "/dart/pitch_left"};
     device::DjiMotor pitch_right_motor_{*this, *dart_command_, "/dart/pitch_right"};
