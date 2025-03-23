@@ -1,6 +1,7 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <mutex>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -8,7 +9,9 @@
 #include <opencv2/opencv.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
+#include <rclcpp/publisher.hpp>
 #include <rmcs_executor/component.hpp>
+#include <std_msgs/msg/detail/string__struct.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <thread>
 
@@ -31,11 +34,21 @@ public:
             register_input("/dart/first_right_friction/velocity", friction_rb_velocity_);
             register_input("/dart/second_right_friction/velocity", friction_rf_velocity_);
 
-            publisher_1_ = this->create_publisher<std_msgs::msg::String>("msg_friction_lf_current_velocity_", 10);
-            publisher_2_ = this->create_publisher<std_msgs::msg::String>("msg_friction_lb_current_velocity_", 10);
-            publisher_3_ = this->create_publisher<std_msgs::msg::String>("msg_friction_rb_current_velocity_", 10);
-            publisher_4_ = this->create_publisher<std_msgs::msg::String>("msg_friction_rf_current_velocity_", 10);
-            timer_       = this->create_wall_timer(std::chrono::milliseconds(1), [this]() { this->publish_message(); });
+            register_input("/dart/first_left_friction/temperature", friction_temp[0]);
+            register_input("/dart/first_right_friction/temperature", friction_temp[1]);
+            register_input("/dart/second_left_friction/temperature", friction_temp[2]);
+            register_input("/dart/second_right_friction/temperature", friction_temp[3]);
+
+            temperature_pub_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_temp", 10);
+            temperature_pub_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_temp", 10);
+            temperature_pub_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_temp", 10);
+            temperature_pub_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_temp", 10);
+
+            velocity_pub_1_ = this->create_publisher<std_msgs::msg::String>("msg_friction_lf_current_velocity_", 10);
+            velocity_pub_2_ = this->create_publisher<std_msgs::msg::String>("msg_friction_lb_current_velocity_", 10);
+            velocity_pub_3_ = this->create_publisher<std_msgs::msg::String>("msg_friction_rb_current_velocity_", 10);
+            velocity_pub_4_ = this->create_publisher<std_msgs::msg::String>("msg_friction_rf_current_velocity_", 10);
+            timer_ = this->create_wall_timer(std::chrono::milliseconds(1), [this]() { this->publish_message(); });
         }
 
         if (camera_enable_) {
@@ -61,14 +74,23 @@ public:
         if (camera_enable_ && cal_fps_enable_) {
             calc_fps();
         }
+
+        for (size_t i = 0; i < 4; i++) {
+            msg_temperature[i].data = std::to_string(*friction_temp[i]);
+        }
+
+        RCLCPP_INFO(get_logger(), "left_2:%5.2lf,right_2:%5.2lf", *friction_temp[2], *friction_temp[3]);
     }
 
 private:
     void publish_message() {
-        publisher_1_->publish(msg_friction_lf_current_velocity_);
-        publisher_2_->publish(msg_friction_lb_current_velocity_);
-        publisher_3_->publish(msg_friction_rb_current_velocity_);
-        publisher_4_->publish(msg_friction_rf_current_velocity_);
+        velocity_pub_1_->publish(msg_friction_lf_current_velocity_);
+        velocity_pub_2_->publish(msg_friction_lb_current_velocity_);
+        velocity_pub_3_->publish(msg_friction_rb_current_velocity_);
+        velocity_pub_4_->publish(msg_friction_rf_current_velocity_);
+
+        for (size_t i = 0; i < 4; i++)
+            temperature_pub_[i]->publish(msg_temperature[i]);
     }
 
     void calc_fps() {
@@ -129,10 +151,14 @@ private:
     std_msgs::msg::String msg_friction_rf_current_velocity_;
 
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_1_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_2_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_3_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_4_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr velocity_pub_1_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr velocity_pub_2_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr velocity_pub_3_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr velocity_pub_4_;
+
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr temperature_pub_[4];
+    InputInterface<double> friction_temp[4];
+    std_msgs::msg::String msg_temperature[4];
 };
 
 } // namespace rmcs_core::controller::dart

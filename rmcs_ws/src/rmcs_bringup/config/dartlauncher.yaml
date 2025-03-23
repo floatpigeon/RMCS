@@ -40,19 +40,20 @@ dart_master_control:
 vision_process:
   ros__parameters:
     invert_image: false
-    exposure_time: 3000
+    exposure_time: 5000
     gain: 12.00
     log_enable: false
 
 launch_control:
   ros__parameters:
     first_default_velicity: 500.00
-    second_default_velocity: 350.00
+    second_default_velocity: 500.00
     velocity_error: 0.00
 
 angle_control:
   ros__parameters:
     auto_mode: false
+
 
 conveyor_velocity_pid_controller:
   ros__parameters:
@@ -135,7 +136,7 @@ pitch_velocity_sync_controller:
     motor1_control_error: /dart/pitch_left/control_error
     motor2_measurement: /dart/pitch_right/velocity
     motor2_control_error: /dart/pitch_right/control_error
-    sync_compensation: 0.01
+    sync_compensation: 0.05
     error_integral_compensation: 0.2
     log_enable: true
 

@@ -1,0 +1,11 @@
+# 3.21
+16m: 
+    friction set:350, real:282
+
+
+25m:
+launch_control:
+  ros__parameters:
+    first_default_velicity: 560.00
+    second_default_velocity: 410.00
+    velocity_error: 0.00

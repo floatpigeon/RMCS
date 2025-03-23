@@ -14,4 +14,4 @@ vision_process:
     exposure_time: 3000
     gain: 12.00
     log_enable: false
-    display_enable: false
+    display_enable: true

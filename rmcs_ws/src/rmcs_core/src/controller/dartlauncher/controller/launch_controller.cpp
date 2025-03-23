@@ -39,6 +39,7 @@ public:
         } else if (filling_enable_ == false) {
             conveyor_working_direction_        = 1;
             *output_conveyor_control_velocity_ = nan;
+            dart_launch_count_                 = 0;
 
             if (*input_command_dart_filling_enable_ == true) {
                 filling_enable_ = true;
