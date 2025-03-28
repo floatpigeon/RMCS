@@ -8,11 +8,11 @@
 
 namespace rmcs_core::controller::dartlauncher {
 
-class DartAutoGuide
+class DartAutoControl
     : public rmcs_executor::Component
     , public rclcpp::Node {
 public:
-    DartAutoGuide()
+    DartAutoControl()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
         limit_velocity = get_parameter("limit_velocity").as_double();
@@ -48,7 +48,7 @@ private:
 } // namespace rmcs_core::controller::dartlauncher
 
 #include <pluginlib/class_list_macros.hpp>
-PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::DartAutoGuide, rmcs_executor::Component)
+PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::DartAutoControl, rmcs_executor::Component)
 
 /*
 镖架制导的主控模块，包含目标选择、自主火控

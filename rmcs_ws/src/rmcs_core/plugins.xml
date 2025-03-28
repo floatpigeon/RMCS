@@ -86,7 +86,10 @@
   <class type="rmcs_core::controller::dartlauncher::TargetTracker" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
-  <class type="rmcs_core::controller::dart::MessagePublisher" base_class_type="rmcs_executor::Component">
+  <class type="rmcs_core::controller::dart::MotorDataPublisher" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::dartlauncher::CameraDataMonitor" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
 </library>
