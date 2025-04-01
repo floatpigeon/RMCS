@@ -47,8 +47,8 @@ vision_process:
 
 launch_control:
   ros__parameters:
-    first_default_velicity: 550.00
-    second_default_velocity: 400.00
+    first_default_velicity: 510.00
+    second_default_velocity: 420.00
     velocity_error: 0.00
 
 angle_control:
@@ -81,17 +81,17 @@ friction_first_left_pid_controller:
   ros__parameters:
     measurement: /dart/first_left_friction/control_error
     control: /dart/first_left_friction/control_torque
-    kp: 30.0
+    kp: 0.012
     ki: 0.00
-    kd: 0.01
+    kd: 0.005
 
 friction_first_right_pid_controller:
   ros__parameters:
     measurement: /dart/first_right_friction/control_error
     control: /dart/first_right_friction/control_torque
-    kp: 30.0
+    kp: 0.012
     ki: 0.00
-    kd: 0.01
+    kd: 0.005
 
 
 friction_second_velocity_paired_controller:
@@ -101,7 +101,7 @@ friction_second_velocity_paired_controller:
     motor1_control_error: /dart/second_left_friction/control_error
     motor2_measurement: /dart/second_right_friction/velocity
     motor2_control_error: /dart/second_right_friction/control_error
-    sync_compensation: 0.00
+    sync_compensation: 0.008
     error_integral_compensation: 0.00
     log_enable: false
 
@@ -109,17 +109,17 @@ friction_second_left_pid_controller:
   ros__parameters:
     measurement: /dart/second_left_friction/control_error
     control: /dart/second_left_friction/control_torque
-    kp: 30.0
+    kp: 0.012
     ki: 0.00
-    kd: 0.1
+    kd: 0.005
 
 friction_second_right_pid_controller:
   ros__parameters:
     measurement: /dart/second_right_friction/control_error
     control: /dart/second_right_friction/control_torque
-    kp: 30.0
+    kp: 0.012
     ki: 0.00
-    kd: 0.1
+    kd: 0.005
 
 yaw_velocity_pid_controller:
   ros__parameters:

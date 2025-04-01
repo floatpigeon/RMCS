@@ -66,7 +66,7 @@ private:
         *output_first_friction_velocity_  = first_friction_default_velocity_;
         *output_second_friction_velocity_ = second_friction_default_velocity_;
 
-        // *output_first_friction_velocity_  = nan;
+        // *output_first_friction_velocity_ = nan;
         // *output_second_friction_velocity_ = nan;
     }
 

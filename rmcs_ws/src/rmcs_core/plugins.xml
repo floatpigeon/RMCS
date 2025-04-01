@@ -68,6 +68,9 @@
   <class type="rmcs_core::controller::dartlauncher::DartManualControl" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::controller::dartlauncher::DartAutoControl" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
   <class type="rmcs_core::controller::dartlauncher::LaunchControl" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>

@@ -1,4 +1,3 @@
-
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
