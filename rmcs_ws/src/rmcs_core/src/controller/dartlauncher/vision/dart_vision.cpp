@@ -1,10 +1,11 @@
-#include "controller/dartlauncher/dart_resources.hpp"
-#include "controller/dartlauncher/vision/image_process.hpp"
+#include "controller/dartlauncher/vision/identifier.hpp"
 #include <hikcamera/image_capturer.hpp>
 #include <mutex>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 #include <thread>
@@ -22,10 +23,7 @@ public:
         camera_profile_.gain          = static_cast<float>(get_parameter("gain").as_double());
         image_capture_                = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
 
-        camera_thread_  = std::thread(&DartVision::image_capture, this);
-        identify_thead_ = std::thread(&DartVision::guide_light_identify, this);
-
-        // register_input("/dart/master_control/auto_guide_enable", auto_guide_enable_);
+        camera_thread_ = std::thread(&DartVision::image_capture, this);
     }
 
     void update() override {}
@@ -33,54 +31,35 @@ public:
 private:
     void image_capture() {
         while (true) {
-            if (!true) {
-                {
-                    std::lock_guard<std::mutex> lock(camera_image_mtx_);
-                    latest_camera_image_buffer_.image = cv::Mat();
-                    latest_camera_image_buffer_.id    = -1;
-                }
+            if (!camera_capture_enable_) {
                 std::this_thread::sleep_for(std::chrono::microseconds(1000));
                 continue;
             }
 
             cv::Mat read = image_capture_->read();
-            {
-                std::lock_guard<std::mutex> lock(camera_image_mtx_);
-                latest_camera_image_buffer_.image = read;
-                latest_camera_image_buffer_.id    = (latest_camera_image_buffer_.id + 1) % 300;
+            identifier_.load(read);
+            if (switch_command) {
+                identifier_.start_idenitfy();
+                switch_command = false;
             }
+            auto display = identifier_.get_display_image();
+
+            cv::imshow("camera", read);
+            cv::waitKey(1);
         }
     }
-
-    void guide_light_identify() {
-        while (true) {
-            ImageData latest_image;
-            {
-                std::lock_guard<std::mutex> lock(camera_image_mtx_);
-                latest_image = latest_camera_image_buffer_;
-            }
-
-            if (latest_image.id == -1 || latest_image.id == latest_processed_image_.id) {
-                latest_processed_image_ = latest_image;
-                continue;
-            }
-
-            cv::Mat preprocessed_image = ImageProcess::pre_process_beta(latest_image.image, cv::COLOR_RGB2HLS);
-            ImageProcess::first_filter_beta(preprocessed_image, latest_image.image, true);
-        }
-    }
+    bool switch_command = true;
 
     rclcpp::Logger logger_;
-    std::thread camera_thread_, identify_thead_;
-    std::mutex camera_image_mtx_, identify_mtx_;
 
-    ImageData latest_camera_image_buffer_;
-    ImageData latest_processed_image_; // only in identify_thread now
+    std::thread camera_thread_;
+    std::mutex camera_mtx_;
+    bool camera_capture_enable_ = true;
+
+    GuideLightIdentifier identifier_;
 
     hikcamera::ImageCapturer::CameraProfile camera_profile_;
     std::unique_ptr<hikcamera::ImageCapturer> image_capture_;
-
-    // InputInterface<bool> auto_guide_enable_;
 };
 
 } // namespace rmcs_core::controller::dartlauncher

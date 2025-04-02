@@ -1,11 +1,15 @@
+#include <algorithm>
 #include <cstddef>
 #include <mutex>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <rclcpp/logger.hpp>
 #include <thread>
 #include <vector>
+// TODO:把这个东西改成继承rmcs_executor::Component，把相机读取改成一个类
 
 namespace rmcs_core::controller::dartlauncher {
 
@@ -28,7 +32,7 @@ class GuideLightIdentifier {
 public:
     GuideLightIdentifier() { identify_thread_ = std::thread(&GuideLightIdentifier::idenitfy, this); }
 
-    void load_image(const cv::Mat& src) {
+    void load(const cv::Mat& src) {
         if (src.empty())
             return;
 
@@ -58,7 +62,7 @@ private:
     void idenitfy() {
         while (true) {
             if (launch_stage_ == LaunchStage::Disable) {
-                detect_count_ = 0;
+                detect_frame_count_ = 0;
                 target_data_collection_.clear();
                 continue;
             }
@@ -68,6 +72,7 @@ private:
                 std::lock_guard<std::mutex> lock(buffer_mtx_);
                 enable_flag = single_detect_enable_;
             }
+
             if (!enable_flag)
                 continue;
 
@@ -77,29 +82,48 @@ private:
                 input = latest_image_;
             }
 
-            cv::Mat display_image;
-            std::vector<cv::Point2d> possible_targets = image_process(input, cv::COLOR_RGB2HLS, display_image);
-            single_detect_enable_                     = false;
+            if (launch_stage_ == LaunchStage::Detect) {
+                cv::Mat display_image;
+                std::vector<cv::Point2d> possible_targets = image_process(input, cv::COLOR_RGB2HLS, display_image);
+                single_detect_enable_                     = false;
 
-            size_t confirmed_id = -1;
-            if (detect_count_ < 150) {
-                static_target_filter(possible_targets, target_data_collection_);
-                detect_count_++;
-            } else {
-                double max_score = 0;
-                for (size_t i = 0; i < target_data_collection_.size(); i++) {
-                    double this_score =
-                        target_data_collection_[i].catch_count + 1000 / (target_data_collection_[i].max_move_dist + 1);
-                    if (this_score > max_score) {
-                        confirmed_id = i;
-                        max_score    = this_score;
+                size_t confirmed_id = -1;
+                if (detect_frame_count_ < 150) {
+                    static_target_filter(possible_targets, target_data_collection_);
+                    detect_frame_count_++;
+                    continue;
+                } else {
+                    double max_score = 0;
+                    if (target_data_collection_.empty()) {
+                        // TODO:未识别到任何东西的特殊处理
+                        // TODO:扩大筛选参数重新检测，做内录方便调出查看
+                        launch_stage_       = LaunchStage::Detect;
+                        detect_frame_count_ = 0;
+                        std::cout << "no target,try again" << std::endl;
+
+                        continue;
+                    }
+
+                    for (size_t i = 0; i < target_data_collection_.size(); ++i) {
+                        double this_score = target_data_collection_[i].catch_count
+                                          + 1000 / (target_data_collection_[i].max_move_dist + 1);
+
+                        if (this_score > max_score) {
+                            confirmed_id = i;
+                            max_score    = this_score;
+                        }
                     }
                 }
-            }
 
-            {
-                std::lock_guard<std::mutex> lock(buffer_mtx_);
-                target_initial_position = target_data_collection_[confirmed_id].latest_position;
+                {
+                    std::lock_guard<std::mutex> lock(buffer_mtx_);
+                    target_initial_position = target_data_collection_[confirmed_id].latest_position;
+                    launch_stage_           = LaunchStage::Track;
+                    continue;
+                }
+            } else if (launch_stage_ == LaunchStage::Track) {
+                // 跟踪器启动
+                std::cout << "tracking" << std::endl;
             }
         }
     }
@@ -200,7 +224,7 @@ private:
     cv::Mat latest_image_;
     bool single_detect_enable_ = false;
     LaunchStage launch_stage_  = LaunchStage::Disable;
-    int detect_count_          = -1;
+    int detect_frame_count_    = -1;
 
     cv::Mat latest_display_image_;
     cv::Point target_initial_position;
