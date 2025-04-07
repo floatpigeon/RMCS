@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef>
+#include <iostream>
 #include <mutex>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
@@ -9,7 +10,6 @@
 #include <rclcpp/logger.hpp>
 #include <thread>
 #include <vector>
-// TODO:把这个东西改成继承rmcs_executor::Component，把相机读取改成一个类
 
 namespace rmcs_core::controller::dartlauncher {
 
@@ -84,7 +84,7 @@ private:
 
             if (launch_stage_ == LaunchStage::Detect) {
                 cv::Mat display_image;
-                std::vector<cv::Point2d> possible_targets = image_process(input, cv::COLOR_RGB2HLS, display_image);
+                std::vector<cv::Point2d> possible_targets = image_process(input, cv::COLOR_RGB2HSV, display_image);
                 single_detect_enable_                     = false;
 
                 size_t confirmed_id = -1;
@@ -130,19 +130,20 @@ private:
 
     static std::vector<cv::Point2d> image_process(const cv::Mat& input, int code, cv::Mat& output) {
         cv::Mat color_mask;
+        output = input;
         cv::cvtColor(input, color_mask, code);
         cv::Scalar lower_limit;
         cv::Scalar upper_limit;
 
         switch (code) {
         case cv::COLOR_RGB2HLS:
-            lower_limit = cv::Scalar(45, 16, 128);
-            upper_limit = cv::Scalar(75, 172, 255);
+            lower_limit = cv::Scalar(40, 20, 0);
+            upper_limit = cv::Scalar(70, 128, 255);
             break;
 
         case cv::COLOR_RGB2HSV:
-            lower_limit = cv::Scalar(40, 50, 200);
-            upper_limit = cv::Scalar(50, 255, 255);
+            lower_limit = cv::Scalar(90, 180, 200);
+            upper_limit = cv::Scalar(100, 220, 255);
             break;
 
         default: break;
@@ -165,6 +166,10 @@ private:
             cv::circle(output, center, radius, cv::Scalar(255, 0, 255), 3);
             possible_targets.emplace_back(center);
         }
+
+        cv::imshow("binary", binary);
+        cv::imshow("output", output);
+        cv::waitKey(1);
         return possible_targets;
     }
 
@@ -214,6 +219,8 @@ private:
                 collection.begin(), collection.end(),
                 [](const TargetData& target) { return (target.miss_count > 20); }),
             collection.end());
+
+        std::cout << "points:" << points.size() << ",collection:" << collection.size() << std::endl;
     }
 
     std::vector<TargetData> target_data_collection_;

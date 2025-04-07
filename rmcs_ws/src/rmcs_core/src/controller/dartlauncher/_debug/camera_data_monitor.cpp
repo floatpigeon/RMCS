@@ -14,7 +14,7 @@ public:
     CameraDataMonitor()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
-        register_input("camera/display_image", input_camera_image_);
+        // register_input("camera/display_image", input_camera_image_);
     }
 
     void update() override { fps_calc(update_last_time_point_, true); }

@@ -85,9 +85,10 @@ private:
                 continue;
             }
 
-            auto preprocessed_image  = ImageProcess::preprocess(display_image, cv::COLOR_RGB2HLS);
+            auto preprocessed_image = ImageProcess::preprocess(display_image, cv::COLOR_RGB2HLS);
+
             last_processed_image_id_ = image_id;
-            auto possible_targets    = ImageProcess::first_filter(preprocessed_image, display_image, false);
+            auto possible_targets    = ImageProcess::first_filter(preprocessed_image, display_image, true);
 
             {
                 std::lock_guard<std::mutex> lock(image_process_mtx_);
