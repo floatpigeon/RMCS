@@ -167,9 +167,9 @@ private:
             possible_targets.emplace_back(center);
         }
 
-        cv::imshow("binary", binary);
-        cv::imshow("output", output);
-        cv::waitKey(1);
+        // cv::imshow("binary", binary);
+        // cv::imshow("output", output);
+        // cv::waitKey(1);
         return possible_targets;
     }
 
@@ -220,7 +220,7 @@ private:
                 [](const TargetData& target) { return (target.miss_count > 20); }),
             collection.end());
 
-        std::cout << "points:" << points.size() << ",collection:" << collection.size() << std::endl;
+        // std::cout << "points:" << points.size() << ",collection:" << collection.size() << std::endl;
     }
 
     std::vector<TargetData> target_data_collection_;

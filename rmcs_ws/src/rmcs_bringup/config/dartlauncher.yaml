@@ -6,9 +6,6 @@ rmcs_executor:
       - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
       # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
 
-      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
-      # - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
-
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
       - rmcs_core::controller::dartlauncher::AngleControl -> angle_control
 
@@ -28,7 +25,9 @@ rmcs_executor:
       - rmcs_core::controller::dart::MotorDataPublisher -> message_publisher
       # - rmcs_core::controller::dartlauncher::CameraDataMonitor -> camera_data_monitor
 
-
+      # - rmcs_core::controller::dartlauncher::DartVision -> vision_process
+      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+      # - rmcs_core::controller::dartlauncher::TargetTracker -> target_tracker
 
 dart_launcher_hardware:
   ros__parameters:
@@ -41,15 +40,24 @@ dart_master_control:
 vision_process:
   ros__parameters:
     invert_image: false
-    exposure_time: 5000
+    exposure_time: 3000
     gain: 12.00
     log_enable: false
+    display_enable: true
 
 launch_control:
   ros__parameters:
-    first_default_velicity: 510.00
-    second_default_velocity: 420.00
+    first_default_velicity: 640.0
+    second_default_velocity: 365.0
     velocity_error: 0.00
+    distance: "25m" # 2025.4.10
+
+# launch_control:
+#   ros__parameters:
+#     first_default_velicity: 450.0
+#     second_default_velocity: 220.0
+#     velocity_error: 0.00
+#     distance: "test"
 
 angle_control:
   ros__parameters:

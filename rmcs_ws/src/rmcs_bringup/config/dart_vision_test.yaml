@@ -2,16 +2,16 @@ rmcs_executor:
   ros__parameters:
     update_rate: 1000.0
     components:
-      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
-      - rmcs_core::controller::dartlauncher::DartVision -> vision_process
+      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+      # - rmcs_core::controller::dartlauncher::DartVision -> vision_process
       
       # _ rmcs_core::controller::dartlauncher::MsgProcess -> msg_process
-      - rmcs_core::controller::dartlauncher::CameraDataMonitor -> data_monitor
+      # - rmcs_core::controller::dartlauncher::CameraDataMonitor -> data_monitor
 
 vision_process:
   ros__parameters:
     invert_image: false
-    exposure_time: 3000
-    gain: 12.00
+    exposure_time: 5000 # 3000
+    gain: 16.00 #12.00
     log_enable: false
     display_enable: true

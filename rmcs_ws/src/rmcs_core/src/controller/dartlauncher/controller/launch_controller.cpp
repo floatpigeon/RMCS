@@ -35,7 +35,7 @@ public:
         }
 
         if (filling_enable_ == true) {
-            dart_filling_control();
+            dart_filling_control_new();
         } else if (filling_enable_ == false) {
             conveyor_working_direction_        = 1;
             *output_conveyor_control_velocity_ = nan;
@@ -45,10 +45,6 @@ public:
                 filling_enable_ = true;
             }
         }
-
-        // RCLCPP_INFO(
-        //     logger_, "convryor_velocity:%5.1lf,direction:%5.1lf,bool:%5d", *output_conveyor_control_velocity_,
-        //     conveyor_working_direction_, *input_command_dart_filling_enable_);
     }
 
 private:
@@ -66,7 +62,7 @@ private:
         *output_first_friction_velocity_  = first_friction_default_velocity_;
         *output_second_friction_velocity_ = second_friction_default_velocity_;
 
-        // *output_first_friction_velocity_ = nan;
+        // *output_first_friction_velocity_  = nan;
         // *output_second_friction_velocity_ = nan;
     }
 
@@ -87,7 +83,27 @@ private:
             filling_enable_ = false;
         }
 
-        *output_conveyor_control_velocity_ = filling_enable_ ? 100 * conveyor_working_direction_ : nan;
+        *output_conveyor_control_velocity_ = filling_enable_ ? 80 * conveyor_working_direction_ : nan;
+    }
+
+    void dart_filling_control_new() {
+        if (conveyor_velocity_stable_ && *input_conveyor_velocity_ == 0.0) {
+            if (conveyor_working_direction_new_ > 0) {
+                dart_launch_count_++;
+            }
+            conveyor_velocity_stable_       = false;
+            conveyor_working_direction_new_ = -1 * conveyor_working_direction_new_ - 0.5;
+        }
+
+        if (abs(*input_conveyor_velocity_) > 10.0) {
+            conveyor_velocity_stable_ = true;
+        }
+
+        if (dart_launch_count_ == 2) {
+            filling_enable_ = false;
+        }
+
+        *output_conveyor_control_velocity_ = filling_enable_ ? 120 * conveyor_working_direction_new_ : nan;
     }
 
     rclcpp::Logger logger_;
@@ -102,10 +118,11 @@ private:
     OutputInterface<double> output_first_friction_velocity_; // close to filling direction called first
     OutputInterface<double> output_second_friction_velocity_;
 
-    bool conveyor_velocity_stable_     = false;
-    bool filling_enable_               = false;
-    int dart_launch_count_             = 0;
-    double conveyor_working_direction_ = 1.0;
+    bool conveyor_velocity_stable_         = false;
+    bool filling_enable_                   = false;
+    int dart_launch_count_                 = 0;
+    double conveyor_working_direction_     = 1.0;
+    double conveyor_working_direction_new_ = -1.0;           // dart_filling_control_new
     InputInterface<bool> input_command_dart_filling_enable_; // from dart_auto_guide or dart_manual_control
     InputInterface<double> input_conveyor_velocity_;         // from dart_auto_guide or dart_manual_control
     OutputInterface<double> output_conveyor_control_velocity_;
