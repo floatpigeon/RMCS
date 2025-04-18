@@ -15,11 +15,11 @@
 
 namespace rmcs_core::controller::dart {
 
-class MotorDataPublisher
+class ControllerDataPublisher
     : public rmcs_executor::Component
     , public rclcpp::Node {
 public:
-    MotorDataPublisher()
+    ControllerDataPublisher()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
 
         register_input("/dart/first_left_friction/velocity", input_friction_velocity_[0]);
@@ -111,4 +111,4 @@ private:
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dart::MotorDataPublisher, rmcs_executor::Component)
+PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dart::ControllerDataPublisher, rmcs_executor::Component)

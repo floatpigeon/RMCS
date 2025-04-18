@@ -22,8 +22,8 @@ rmcs_executor:
       - rmcs_core::controller::pid::ErrorPidController -> pitch_left_velocity_pid_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_right_velocity_pid_controller
 
-      - rmcs_core::controller::dart::MotorDataPublisher -> message_publisher
-      # - rmcs_core::controller::dartlauncher::CameraDataMonitor -> camera_data_monitor
+      - rmcs_core::controller::dart::ControllerDataPublisher -> message_publisher
+      # - rmcs_core::controller::dartlauncher::UpdateFPSMonitor -> camera_data_monitor
 
       # - rmcs_core::controller::dartlauncher::DartVision -> vision_process
       # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process

@@ -2,11 +2,11 @@ rmcs_executor:
   ros__parameters:
     update_rate: 1000.0
     components:
-      - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
-      # - rmcs_core::controller::dartlauncher::DartVision -> vision_process
+      # - rmcs_core::controller::dartlauncher::VisionProcess -> vision_process
+      - rmcs_core::controller::dartlauncher::DartVision -> vision_process
       
-      # _ rmcs_core::controller::dartlauncher::MsgProcess -> msg_process
-      # - rmcs_core::controller::dartlauncher::CameraDataMonitor -> data_monitor
+      # - rmcs_core::controller::dartlauncher::MsgProcess -> msg_process
+      - rmcs_core::controller::dartlauncher::CameraDataMonitor -> data_monitor
 
 vision_process:
   ros__parameters:
