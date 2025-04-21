@@ -12,12 +12,9 @@ class ErrorPidController
     , public rclcpp::Node {
 public:
     ErrorPidController()
-        : Node(
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
+        : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , pid_calculator_(
-              get_parameter("kp").as_double(), get_parameter("ki").as_double(),
-              get_parameter("kd").as_double()) {
+              get_parameter("kp").as_double(), get_parameter("ki").as_double(), get_parameter("kd").as_double()) {
 
         register_input(get_parameter("measurement").as_string(), measurement_);
         register_output(get_parameter("control").as_string(), control_);

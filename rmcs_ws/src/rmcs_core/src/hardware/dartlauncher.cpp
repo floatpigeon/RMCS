@@ -57,29 +57,29 @@ public:
     void command_update() {
         uint16_t can_commands[4];
 
-        can_commands[0] = 0;
-        can_commands[1] = 0;
-        can_commands[2] = 0;
-        can_commands[3] = 0;
-        transmit_buffer_.add_can1_transmission(0x1FE, std::bit_cast<uint64_t>(can_commands));
+        // can_commands[0] = 0;
+        // can_commands[1] = 0;
+        // can_commands[2] = 0;
+        // can_commands[3] = 0;
+        // transmit_buffer_.add_can1_transmission(0x1FE, std::bit_cast<uint64_t>(can_commands));
 
-        can_commands[0] = pitch_left_motor_.generate_command();
-        can_commands[1] = pitch_right_motor_.generate_command();
-        can_commands[2] = yaw_angle_motor_.generate_command();
-        can_commands[3] = 0;
-        transmit_buffer_.add_can1_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
+        // can_commands[0] = pitch_left_motor_.generate_command();
+        // can_commands[1] = pitch_right_motor_.generate_command();
+        // can_commands[2] = yaw_angle_motor_.generate_command();
+        // can_commands[3] = 0;
+        // transmit_buffer_.add_can1_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
 
-        can_commands[0] = conveyor_motor_.generate_command();
-        can_commands[1] = 0;
-        can_commands[2] = 0;
-        can_commands[3] = 0;
-        transmit_buffer_.add_can2_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
+        // can_commands[0] = conveyor_motor_.generate_command();
+        // can_commands[1] = 0;
+        // can_commands[2] = 0;
+        // can_commands[3] = 0;
+        // transmit_buffer_.add_can2_transmission(0x1FF, std::bit_cast<uint64_t>(can_commands));
 
-        can_commands[0] = friction_motors_[0].generate_command();
-        can_commands[1] = friction_motors_[1].generate_command();
+        // can_commands[0] = friction_motors_[0].generate_command();
+        // can_commands[1] = friction_motors_[1].generate_command();
         can_commands[2] = friction_motors_[2].generate_command();
-        can_commands[3] = friction_motors_[3].generate_command();
-        transmit_buffer_.add_can2_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
+        // can_commands[3] = friction_motors_[3].generate_command();
+        transmit_buffer_.add_can1_transmission(0x200, std::bit_cast<uint64_t>(can_commands));
 
         transmit_buffer_.trigger_transmission();
     }
@@ -102,7 +102,7 @@ private:
     }
 
 protected:
-    void can1_receive_callback(
+    void can2_receive_callback(
         uint32_t can_id, uint64_t can_data, bool is_extended_can_id, bool is_remote_transmission,
         uint8_t can_data_length) override {
         if (is_extended_can_id || is_remote_transmission || can_data_length < 8) [[unlikely]]
@@ -120,7 +120,7 @@ protected:
         }
     }
 
-    void can2_receive_callback(
+    void can1_receive_callback(
         uint32_t can_id, uint64_t can_data, bool is_extended_can_id, bool is_remote_transmission,
         uint8_t can_data_length) override {
         if (is_extended_can_id || is_remote_transmission || can_data_length < 8) [[unlikely]]

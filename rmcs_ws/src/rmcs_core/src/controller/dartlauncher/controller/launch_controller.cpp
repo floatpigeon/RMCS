@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 
@@ -45,6 +46,8 @@ public:
                 filling_enable_ = true;
             }
         }
+
+        RCLCPP_INFO(logger_, "control:%lf", *output_second_friction_velocity_);
     }
 
 private:

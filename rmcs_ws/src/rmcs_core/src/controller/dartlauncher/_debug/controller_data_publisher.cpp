@@ -32,10 +32,10 @@ public:
         register_input("/dart/second_left_friction/temperature", input_friction_temperature_[2]);
         register_input("/dart/second_right_friction/temperature", input_friction_temperature_[3]);
 
-        register_input("/dart/first_left_friction/temperature", input_friction_torque_[0]);
-        register_input("/dart/first_right_friction/temperature", input_friction_torque_[1]);
-        register_input("/dart/second_left_friction/temperature", input_friction_torque_[2]);
-        register_input("/dart/second_right_friction/temperature", input_friction_torque_[3]);
+        register_input("/dart/first_left_friction/filtered_velocity", input_friction_filter_[0]);
+        register_input("/dart/first_right_friction/filtered_velocity", input_friction_filter_[1]);
+        register_input("/dart/second_left_friction/filtered_velocity", input_friction_filter_[2]);
+        register_input("/dart/second_right_friction/filtered_velocity", input_friction_filter_[3]);
 
         register_input("/dart/pitch_left/velocity", input_pitch_data_[0]);
         register_input("/dart/pitch_right/velocity", input_pitch_data_[1]);
@@ -50,10 +50,10 @@ public:
         pub_velocity_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_velocity", 10);
         pub_velocity_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_velocity", 10);
 
-        pub_torque_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_torque", 10);
-        pub_torque_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_torque", 10);
-        pub_torque_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_torque", 10);
-        pub_torque_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_torque", 10);
+        pub_filter_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_filter", 10);
+        pub_filter_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_filter", 10);
+        pub_filter_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_filter", 10);
+        pub_filter_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_filter", 10);
 
         pub_pitch_data_[0] = this->create_publisher<std_msgs::msg::String>("pitch_left_velocity", 10);
         pub_pitch_data_[1] = this->create_publisher<std_msgs::msg::String>("pitch_right_velocity", 10);
@@ -67,7 +67,7 @@ public:
         for (size_t i = 0; i < 4; i++) {
             msg_friction_temperature_[i].data = std::to_string(*input_friction_temperature_[i]);
             msg_friction_velocity_[i].data    = std::to_string(*input_friction_velocity_[i]);
-            msg_friction_torque_[i].data      = std::to_string(*input_friction_torque_[i]);
+            msg_friction_filter_[i].data      = std::to_string(*input_friction_filter_[i]);
         }
 
         msg_pitch_data_[0].data = std::to_string(*input_pitch_data_[0]);
@@ -83,7 +83,7 @@ private:
         for (size_t i = 0; i < 4; i++) {
             pub_temperature_[i]->publish(msg_friction_temperature_[i]);
             pub_velocity_[i]->publish(msg_friction_velocity_[i]);
-            pub_torque_[i]->publish(msg_friction_torque_[i]);
+            pub_filter_[i]->publish(msg_friction_filter_[i]);
             pub_pitch_data_[i]->publish(msg_pitch_data_[i]);
         }
     }
@@ -98,9 +98,9 @@ private:
     InputInterface<double> input_friction_temperature_[4];
     std_msgs::msg::String msg_friction_temperature_[4];
 
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_torque_[4];
-    InputInterface<double> input_friction_torque_[4];
-    std_msgs::msg::String msg_friction_torque_[4];
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_filter_[4];
+    InputInterface<double> input_friction_filter_[4];
+    std_msgs::msg::String msg_friction_filter_[4];
 
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_pitch_data_[4];
     InputInterface<double> input_pitch_data_[2];
