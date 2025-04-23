@@ -23,6 +23,9 @@ public:
         camera_profile_.gain          = static_cast<float>(get_parameter("gain").as_double());
         image_capture_                = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
 
+        register_output("/dart/vision/camera_image", output_camera_image_);
+        // register_output("/dart/vision/display_image", output_display_image_);
+
         camera_thread_ = std::thread(&DartVision::image_capture, this);
     }
 
@@ -31,21 +34,20 @@ public:
 private:
     void image_capture() {
         while (true) {
-            if (!camera_capture_enable_) {
-                std::this_thread::sleep_for(std::chrono::microseconds(1000));
-                continue;
-            }
+            // if (!camera_capture_enable_) {
+            //     std::this_thread::sleep_for(std::chrono::microseconds(1000));
+            //     continue;
+            // }
 
-            cv::Mat read = image_capture_->read();
-            identifier_.load(read);
-            if (switch_command) {
-                identifier_.start_idenitfy();
-                switch_command = false;
-            }
-            auto display = identifier_.get_display_image();
+            cv::Mat read          = image_capture_->read();
+            *output_camera_image_ = read;
 
-            cv::imshow("camera", read);
-            cv::waitKey(1);
+            // identifier_.load(read);
+            // if (switch_command) {
+            //     identifier_.start_idenitfy();
+            //     switch_command = false;
+            // }
+            // auto display = identifier_.get_display_image();
         }
     }
     bool switch_command = true;
@@ -56,10 +58,13 @@ private:
     std::mutex camera_mtx_;
     bool camera_capture_enable_ = true;
 
-    GuideLightIdentifier identifier_;
+    // GuideLightIdentifier identifier_;
 
     hikcamera::ImageCapturer::CameraProfile camera_profile_;
     std::unique_ptr<hikcamera::ImageCapturer> image_capture_;
+
+    OutputInterface<cv::Mat> output_camera_image_;
+    // OutputInterface<cv::Mat> output_display_image_;
 };
 
 } // namespace rmcs_core::controller::dartlauncher

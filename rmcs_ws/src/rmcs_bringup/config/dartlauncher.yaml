@@ -46,8 +46,8 @@ vision_process:
 
 launch_control:
   ros__parameters:
-    first_default_velicity: 325.0
-    second_default_velocity: 325.0
+    first_default_velicity: 800.0
+    second_default_velocity: 300.0
     velocity_error: 0.00
     distance: "test_moror" # 2025.4.22
 
@@ -82,7 +82,7 @@ friction_first_velocity_paired_controller:
     sync_compensation: 0.000
     error_integral_compensation: 0.00
     filter_enable: true
-    cutoff: 600.0
+    cutoff: 500.0
     motor1_filtered_topic: /dart/first_left_friction/filtered_velocity
     motor2_filtered_topic: /dart/first_right_friction/filtered_velocity
 
@@ -91,17 +91,21 @@ friction_first_left_pid_controller:
   ros__parameters:
     measurement: /dart/first_left_friction/control_error
     control: /dart/first_left_friction/control_torque
-    kp: 0.001
-    ki: 0.00
-    kd: 0.00
+    kp: 0.005
+    ki: 0.00002
+    kd: 0.005
+    integral_min: -150.0
+    integral_max: 150.0
 
 friction_first_right_pid_controller:
   ros__parameters:
     measurement: /dart/first_right_friction/control_error
     control: /dart/first_right_friction/control_torque
-    kp: 0.001
-    ki: 0.00
-    kd: 0.00
+    kp: 0.005
+    ki: 0.00002
+    kd: 0.005
+    integral_min: -150.0
+    integral_max: 150.0
 
 # friction_first_left_pid_controller:
 #   ros__parameters:
@@ -138,21 +142,21 @@ friction_second_left_pid_controller:
   ros__parameters:
     measurement: /dart/second_left_friction/control_error
     control: /dart/second_left_friction/control_torque
-    kp: 0.0012
-    ki: 0.0000
-    kd: 0.055
-    integral_min: -80.0
-    integral_max: 80.0
+    kp: 0.005
+    ki: 0.00002
+    kd: 0.005
+    integral_min: -150.0
+    integral_max: 150.0
 
 friction_second_right_pid_controller:
   ros__parameters:
     measurement: /dart/second_right_friction/control_error
     control: /dart/second_right_friction/control_torque
-    kp: 0.0012
-    ki: 0.0000
-    kd: 0.055
-    integral_min: -80.0
-    integral_max: 80.0
+    kp: 0.005
+    ki: 0.00002
+    kd: 0.005
+    integral_min: -150.0
+    integral_max: 150.0
 
 yaw_velocity_pid_controller:
   ros__parameters:

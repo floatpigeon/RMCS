@@ -1,6 +1,10 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/src/Geometry/Quaternion.h>
+#include <geometry_msgs/msg/detail/quaternion__struct.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
@@ -40,6 +44,8 @@ public:
         register_input("/dart/pitch_left/velocity", input_pitch_data_[0]);
         register_input("/dart/pitch_right/velocity", input_pitch_data_[1]);
 
+        register_input("/dart/device/imu_data", input_imu_data_);
+
         pub_temperature_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_temp", 10);
         pub_temperature_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_temp", 10);
         pub_temperature_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_temp", 10);
@@ -60,6 +66,8 @@ public:
         pub_pitch_data_[2] = this->create_publisher<std_msgs::msg::String>("pitch_left_position", 10);
         pub_pitch_data_[3] = this->create_publisher<std_msgs::msg::String>("pitch_right_position", 10);
 
+        pub_imu_data_ = this->create_publisher<geometry_msgs::msg::Quaternion>("dartlauncher_imu_data", 10);
+
         timer_ = this->create_wall_timer(std::chrono::milliseconds(1), [this]() { this->publish_message(); });
     }
 
@@ -76,6 +84,11 @@ public:
         pitch_velocity_integral_[1] += *input_pitch_data_[1];
         msg_pitch_data_[2].data = std::to_string(pitch_velocity_integral_[0]);
         msg_pitch_data_[3].data = std::to_string(pitch_velocity_integral_[1]);
+
+        msg_imu_data_.w = input_imu_data_->w();
+        msg_imu_data_.x = input_imu_data_->x();
+        msg_imu_data_.y = input_imu_data_->y();
+        msg_imu_data_.z = input_imu_data_->z();
     }
 
 private:
@@ -85,6 +98,7 @@ private:
             pub_velocity_[i]->publish(msg_friction_velocity_[i]);
             pub_filter_[i]->publish(msg_friction_filter_[i]);
             pub_pitch_data_[i]->publish(msg_pitch_data_[i]);
+            pub_imu_data_->publish(msg_imu_data_);
         }
     }
 
@@ -106,6 +120,10 @@ private:
     InputInterface<double> input_pitch_data_[2];
     double pitch_velocity_integral_[2] = {0, 0};
     std_msgs::msg::String msg_pitch_data_[4];
+
+    rclcpp::Publisher<geometry_msgs::msg::Quaternion>::SharedPtr pub_imu_data_;
+    InputInterface<Eigen::Quaterniond> input_imu_data_;
+    geometry_msgs::msg::Quaternion msg_imu_data_;
 };
 } // namespace rmcs_core::controller::dart
 

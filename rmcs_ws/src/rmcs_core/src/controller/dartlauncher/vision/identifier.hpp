@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -99,7 +101,6 @@ private:
                         // TODO:扩大筛选参数重新检测，做内录方便调出查看
                         launch_stage_       = LaunchStage::Detect;
                         detect_frame_count_ = 0;
-                        std::cout << "no target,try again" << std::endl;
 
                         continue;
                     }
@@ -123,7 +124,6 @@ private:
                 }
             } else if (launch_stage_ == LaunchStage::Track) {
                 // 跟踪器启动
-                std::cout << "tracking" << std::endl;
             }
         }
     }

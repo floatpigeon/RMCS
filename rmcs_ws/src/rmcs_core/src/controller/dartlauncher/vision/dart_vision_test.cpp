@@ -1,9 +1,8 @@
-// #include "controller/dartlauncher/vision/identifier.hpp"
+// #include "controller/dartlauncher/vision/identifier_beta.hpp"
 // #include <hikcamera/image_capturer.hpp>
 // #include <mutex>
 // #include <opencv2/core/mat.hpp>
 // #include <opencv2/highgui.hpp>
-// #include <opencv2/imgcodecs.hpp>
 // #include <opencv2/opencv.hpp>
 // #include <rclcpp/logger.hpp>
 // #include <rclcpp/logging.hpp>
@@ -24,6 +23,9 @@
 //         camera_profile_.gain          = static_cast<float>(get_parameter("gain").as_double());
 //         image_capture_                = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
 
+//         register_output("/dart/vision/camera_image", output_camera_image_);
+//         // register_output("/dart/vision/display_image", output_display_image_);
+
 //         camera_thread_ = std::thread(&DartVision::image_capture, this);
 //     }
 
@@ -37,20 +39,15 @@
 //                 continue;
 //             }
 
-//             std::string imagepath =
-//                 "/workspaces/remake/rmcs_ws/src/rmcs_core/src/controller/dartlauncher/_debug/image/16mm_for_16m.png";
-//             cv::Mat read = cv::imread(imagepath, cv::IMREAD_COLOR);
+//             cv::Mat read          = image_capture_->read();
+//             *output_camera_image_ = read;
 
-//             if (read.empty()) {
-//                 RCLCPP_INFO(logger_, "image empty");
-//             }
-
-//             identifier_.load(read);
-//             if (switch_command) {
-//                 identifier_.start_idenitfy();
-//                 switch_command = false;
-//             }
-//             auto display = identifier_.get_display_image();
+//             // identifier_.load(read);
+//             // if (switch_command) {
+//             //     identifier_.start();
+//             //     switch_command = false;
+//             // }
+//             // auto display = identifier_.get_display_image();
 //         }
 //     }
 //     bool switch_command = true;
@@ -61,10 +58,13 @@
 //     std::mutex camera_mtx_;
 //     bool camera_capture_enable_ = true;
 
-//     GuideLightIdentifier identifier_;
+//     Identifier identifier_;
 
 //     hikcamera::ImageCapturer::CameraProfile camera_profile_;
 //     std::unique_ptr<hikcamera::ImageCapturer> image_capture_;
+
+//     OutputInterface<cv::Mat> output_camera_image_;
+//     // OutputInterface<cv::Mat> output_display_image_;
 // };
 
 // } // namespace rmcs_core::controller::dartlauncher
