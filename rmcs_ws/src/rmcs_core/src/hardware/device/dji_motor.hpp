@@ -15,6 +15,7 @@ public:
         status_component.register_output(name_prefix + "/velocity", velocity_, 0.0);
         status_component.register_output(name_prefix + "/torque", torque_, 0.0);
         status_component.register_output(name_prefix + "/max_torque", max_torque_, 0.0);
+        status_component.register_output(name_prefix + "/temperature", temperature_, 0.0);
 
         command_component.register_input(name_prefix + "/control_torque", control_torque_, false);
     }
@@ -34,9 +35,10 @@ public:
 
     void update_status() {
         librmcs::device::DjiMotor::update_status();
-        *angle_    = angle();
-        *velocity_ = velocity();
-        *torque_   = torque();
+        *angle_       = angle();
+        *velocity_    = velocity();
+        *torque_      = torque();
+        *temperature_ = temperature();
     }
 
     double control_torque() const {
@@ -46,15 +48,14 @@ public:
             return 0.0;
     }
 
-    uint16_t generate_command() {
-        return librmcs::device::DjiMotor::generate_command(control_torque());
-    }
+    uint16_t generate_command() { return librmcs::device::DjiMotor::generate_command(control_torque()); }
 
 private:
     rmcs_executor::Component::OutputInterface<double> angle_;
     rmcs_executor::Component::OutputInterface<double> velocity_;
     rmcs_executor::Component::OutputInterface<double> torque_;
     rmcs_executor::Component::OutputInterface<double> max_torque_;
+    rmcs_executor::Component::OutputInterface<double> temperature_;
 
     rmcs_executor::Component::InputInterface<double> control_torque_;
 };

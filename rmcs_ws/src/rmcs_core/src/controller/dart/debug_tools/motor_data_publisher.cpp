@@ -13,16 +13,14 @@
 #include <std_msgs/msg/string.hpp>
 #include <string>
 
-namespace rmcs_core::controller::dart {
+namespace rmcs_core::controller::dartlauncher {
 
 class MotorDataPublisher
     : public rmcs_executor::Component
     , public rclcpp::Node {
 public:
     MotorDataPublisher()
-        : Node(
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
+        : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
 
         register_input("/dart/first_left_friction/velocity", input_friction_velocity_[0]);
         register_input("/dart/first_right_friction/velocity", input_friction_velocity_[1]);
@@ -44,47 +42,29 @@ public:
 
         register_input("/dart/device/imu_data", input_imu_data_);
 
-        pub_temperature_[0] =
-            this->create_publisher<std_msgs::msg::String>("first_left_friction_temp", 10);
-        pub_temperature_[1] =
-            this->create_publisher<std_msgs::msg::String>("first_right_friction_temp", 10);
-        pub_temperature_[2] =
-            this->create_publisher<std_msgs::msg::String>("second_left_friction_temp", 10);
-        pub_temperature_[3] =
-            this->create_publisher<std_msgs::msg::String>("second_right_friction_temp", 10);
+        pub_temperature_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_temp", 10);
+        pub_temperature_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_temp", 10);
+        pub_temperature_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_temp", 10);
+        pub_temperature_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_temp", 10);
 
-        pub_velocity_[0] =
-            this->create_publisher<std_msgs::msg::String>("first_left_friction_velocity", 10);
-        pub_velocity_[1] =
-            this->create_publisher<std_msgs::msg::String>("first_right_friction_velocity", 10);
-        pub_velocity_[2] =
-            this->create_publisher<std_msgs::msg::String>("second_left_friction_velocity", 10);
-        pub_velocity_[3] =
-            this->create_publisher<std_msgs::msg::String>("second_right_friction_velocity", 10);
+        pub_velocity_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_velocity", 10);
+        pub_velocity_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_velocity", 10);
+        pub_velocity_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_velocity", 10);
+        pub_velocity_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_velocity", 10);
 
-        pub_filter_[0] =
-            this->create_publisher<std_msgs::msg::String>("first_left_friction_filter", 10);
-        pub_filter_[1] =
-            this->create_publisher<std_msgs::msg::String>("first_right_friction_filter", 10);
-        pub_filter_[2] =
-            this->create_publisher<std_msgs::msg::String>("second_left_friction_filter", 10);
-        pub_filter_[3] =
-            this->create_publisher<std_msgs::msg::String>("second_right_friction_filter", 10);
+        pub_filter_[0] = this->create_publisher<std_msgs::msg::String>("first_left_friction_filter", 10);
+        pub_filter_[1] = this->create_publisher<std_msgs::msg::String>("first_right_friction_filter", 10);
+        pub_filter_[2] = this->create_publisher<std_msgs::msg::String>("second_left_friction_filter", 10);
+        pub_filter_[3] = this->create_publisher<std_msgs::msg::String>("second_right_friction_filter", 10);
 
-        pub_pitch_data_[0] =
-            this->create_publisher<std_msgs::msg::String>("pitch_left_velocity", 10);
-        pub_pitch_data_[1] =
-            this->create_publisher<std_msgs::msg::String>("pitch_right_velocity", 10);
-        pub_pitch_data_[2] =
-            this->create_publisher<std_msgs::msg::String>("pitch_left_position", 10);
-        pub_pitch_data_[3] =
-            this->create_publisher<std_msgs::msg::String>("pitch_right_position", 10);
+        pub_pitch_data_[0] = this->create_publisher<std_msgs::msg::String>("pitch_left_velocity", 10);
+        pub_pitch_data_[1] = this->create_publisher<std_msgs::msg::String>("pitch_right_velocity", 10);
+        pub_pitch_data_[2] = this->create_publisher<std_msgs::msg::String>("pitch_left_position", 10);
+        pub_pitch_data_[3] = this->create_publisher<std_msgs::msg::String>("pitch_right_position", 10);
 
-        pub_imu_data_ =
-            this->create_publisher<geometry_msgs::msg::Quaternion>("dartlauncher_imu_data", 10);
+        pub_imu_data_ = this->create_publisher<geometry_msgs::msg::Quaternion>("dartlauncher_imu_data", 10);
 
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(1), [this]() { this->publish_message(); });
+        timer_ = this->create_wall_timer(std::chrono::milliseconds(1), [this]() { this->publish_message(); });
     }
 
     void update() override {
@@ -141,8 +121,8 @@ private:
     InputInterface<Eigen::Quaterniond> input_imu_data_;
     geometry_msgs::msg::Quaternion msg_imu_data_;
 };
-} // namespace rmcs_core::controller::dart
+} // namespace rmcs_core::controller::dartlauncher
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dart::MotorDataPublisher, rmcs_executor::Component)
+PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::MotorDataPublisher, rmcs_executor::Component)
