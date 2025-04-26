@@ -13,3 +13,6 @@
 [submodule "rmcs_ws/src/serial"]
 	path = rmcs_ws/src/serial
 	url = git@github.com:Alliance-Algorithm/ros2-serial.git
+[submodule "rmcs_ws/src/rmcs_dart_guidance"]
+	path = rmcs_ws/src/rmcs_dart_guidance
+	url = https://github.com/floatpigeon/rmcs_dart_guidance.git
