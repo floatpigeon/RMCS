@@ -11,9 +11,7 @@ class AngleControl
     , public rclcpp::Node {
 public:
     AngleControl()
-        : Node(
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
+        : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
         register_input("/dart/master_control/angle_command", angle_control_enable_);
         register_input("/dart/master_control/angle_control_vector", angle_control_vector_);
@@ -37,14 +35,13 @@ private:
         *pitch_control_velocity_ = nan;
     }
 
-    void calibration_angles() {}                // to be improved in the future
+    void calibration_angles() {}                           // to be improved in the future
 
     rclcpp::Logger logger_;
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 
-    InputInterface<bool> angle_control_enable_; // from dart_auto_guide or dart_manual_control
-    InputInterface<Eigen::Vector2d>
-        angle_control_vector_;                  // from dart_auto_guide or dart_manual_control
+    InputInterface<bool> angle_control_enable_;            // from dart_auto_guide or dart_manual_control
+    InputInterface<Eigen::Vector2d> angle_control_vector_; // from dart_auto_guide or dart_manual_control
 
     OutputInterface<double> yaw_control_velocity_;
     OutputInterface<double> pitch_control_velocity_;

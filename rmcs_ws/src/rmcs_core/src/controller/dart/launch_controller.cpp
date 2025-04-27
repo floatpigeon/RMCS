@@ -11,20 +11,15 @@ class LaunchControl
     , public rclcpp::Node {
 public:
     LaunchControl()
-        : Node(
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
+        : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
         first_friction_default_velocity_  = get_parameter("first_default_velicity").as_double();
         second_friction_default_velocity_ = get_parameter("second_default_velocity").as_double();
 
         register_input("/dart/master_control/friction_command", input_command_friction_enable_);
-        register_input(
-            "/dart/master_control/friction_control_velocity", input_dart_launch_velocity_);
-        register_output(
-            "/dart/first_friction/control_velocity", output_first_friction_velocity_, nan);
-        register_output(
-            "/dart/second_friction/control_velocity", output_second_friction_velocity_, nan);
+        register_input("/dart/master_control/friction_control_velocity", input_dart_launch_velocity_);
+        register_output("/dart/first_friction/control_velocity", output_first_friction_velocity_, nan);
+        register_output("/dart/second_friction/control_velocity", output_second_friction_velocity_, nan);
 
         register_input("/dart/master_control/filling_command", input_command_dart_filling_enable_);
         register_input("/dart/conveyor/velocity", input_conveyor_velocity_, false);
@@ -91,8 +86,7 @@ private:
             filling_enable_ = false;
         }
 
-        *output_conveyor_control_velocity_ =
-            filling_enable_ ? 80 * conveyor_working_direction_ : nan;
+        *output_conveyor_control_velocity_ = filling_enable_ ? 80 * conveyor_working_direction_ : nan;
     }
 
     void dart_filling_control_new() {
@@ -112,8 +106,7 @@ private:
             filling_enable_ = false;
         }
 
-        *output_conveyor_control_velocity_ =
-            filling_enable_ ? 120 * conveyor_working_direction_new_ : nan;
+        *output_conveyor_control_velocity_ = filling_enable_ ? 120 * conveyor_working_direction_new_ : nan;
     }
 
     rclcpp::Logger logger_;
@@ -122,23 +115,19 @@ private:
     double first_friction_default_velocity_;
     double second_friction_default_velocity_;
 
-    InputInterface<bool>
-        input_command_friction_enable_;  // from dart_auto_guide or dart_manual_control
-    InputInterface<double>
-        input_dart_launch_velocity_;     // from dart_auto_guide or dart_manual_control,unit: m/s
+    InputInterface<bool> input_command_friction_enable_;     // from dart_auto_guide or dart_manual_control
+    InputInterface<double> input_dart_launch_velocity_;      // from dart_auto_guide or dart_manual_control,unit: m/s
 
-    OutputInterface<double>
-        output_first_friction_velocity_; // close to filling direction called first
+    OutputInterface<double> output_first_friction_velocity_; // close to filling direction called first
     OutputInterface<double> output_second_friction_velocity_;
 
     bool conveyor_velocity_stable_         = false;
     bool filling_enable_                   = false;
     int dart_launch_count_                 = 0;
     double conveyor_working_direction_     = 1.0;
-    double conveyor_working_direction_new_ = -1.0;   // dart_filling_control_new
-    InputInterface<bool>
-        input_command_dart_filling_enable_;          // from dart_auto_guide or dart_manual_control
-    InputInterface<double> input_conveyor_velocity_; // from dart_auto_guide or dart_manual_control
+    double conveyor_working_direction_new_ = -1.0;           // dart_filling_control_new
+    InputInterface<bool> input_command_dart_filling_enable_; // from dart_auto_guide or dart_manual_control
+    InputInterface<double> input_conveyor_velocity_;         // from dart_auto_guide or dart_manual_control
     OutputInterface<double> output_conveyor_control_velocity_;
 };
 

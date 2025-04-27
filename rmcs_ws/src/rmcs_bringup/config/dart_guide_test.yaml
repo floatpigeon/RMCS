@@ -1,0 +1,9 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
+
+dart_guide:
+  ros__parameters:
+    a: 0.0
