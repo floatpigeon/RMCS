@@ -16,3 +16,6 @@
 [submodule "rmcs_ws/src/rmcs_dart_guidance"]
 	path = rmcs_ws/src/rmcs_dart_guidance
 	url = https://github.com/floatpigeon/rmcs_dart_guidance.git
+[submodule "rmcs_ws/src/rmcs_dart_guide"]
+	path = rmcs_ws/src/rmcs_dart_guide
+	url = https://github.com/floatpigeon/rmcs_dart_guide.git
