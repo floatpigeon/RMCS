@@ -3,7 +3,7 @@ rmcs_executor:
     update_rate: 1000.0
     components:
       - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
-      - rmcs_dart_guide::LidarDataProcesser -> lidar_data_processer
+      - rmcs_dart_guide::LidarDataProcess -> lidar_data_processer
 
 dart_guide:
   ros__parameters:
