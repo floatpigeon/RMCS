@@ -3,12 +3,16 @@ rmcs_executor:
     update_rate: 1000.0
     components:
       - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
-      - rmcs_dart_guide::LidarDataProcess -> lidar_data_processer
+      - rmcs_dart_guide::LidarController -> lidar_controller
 
 dart_guide:
   ros__parameters:
     a: 0.0
 
-lidar_data_processer:
+lidar_controller:
   ros__parameters:
-    log: true
+    log_enable: true
+
+pointcloud_publisher:
+  ros__parameters:
+    pub_enable: true
