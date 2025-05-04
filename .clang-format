@@ -1,6 +1,6 @@
 BasedOnStyle: LLVM
 
-ColumnLimit: 120
+ColumnLimit: 115
 
 IndentWidth: 4
 ContinuationIndentWidth: 4

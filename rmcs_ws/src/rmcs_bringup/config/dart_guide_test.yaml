@@ -3,7 +3,8 @@ rmcs_executor:
     update_rate: 1000.0
     components:
       - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
-      - rmcs_dart_guide::LidarController -> lidar_controller
+      # - rmcs_dart_guide::LidarController -> lidar_controller
+      - rmcs_dart_guide::DistanceMeasureDemo -> distance_measure
 
 dart_guide:
   ros__parameters:
@@ -16,3 +17,7 @@ lidar_controller:
 pointcloud_publisher:
   ros__parameters:
     pub_enable: true
+
+distance_measure:
+  ros__parameters:
+    log_enable: true
