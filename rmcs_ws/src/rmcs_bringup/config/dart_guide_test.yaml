@@ -2,9 +2,11 @@ rmcs_executor:
   ros__parameters:
     update_rate: 1000.0
     components:
-      - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
+      # - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
       # - rmcs_dart_guide::LidarController -> lidar_controller
-      - rmcs_dart_guide::DistanceMeasureDemo -> distance_measure
+      # - rmcs_dart_guide::DistanceMeasureDemo -> distance_measure
+      - rmcs_dart_guide::ImagePublisher -> image_publisher
+      - rmcs_dart_guide::DartCameraController -> camera_controller
 
 dart_guide:
   ros__parameters:
@@ -21,3 +23,15 @@ pointcloud_publisher:
 distance_measure:
   ros__parameters:
     log_enable: true
+
+image_publisher:
+  ros__parameters:
+    Interface_name: /dart_guide/camera_image
+    topic_name: /dart_guide/camera/camera_image
+    publish_freq: 10.0
+
+camera_controller:
+  ros__parameters:
+    invert_image: false
+    exposure_time: 3000
+    gain: 12.00
