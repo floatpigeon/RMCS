@@ -29,8 +29,8 @@ public:
     void update() override {
         if (*input_command_friction_enable_ == false) {
             filling_enable_                   = false;
-            *output_first_friction_velocity_  = nan;
-            *output_second_friction_velocity_ = nan;
+            *output_first_friction_velocity_  = 0.0;
+            *output_second_friction_velocity_ = 0.0;
         } else {
             update_friction_velocitys();
         }

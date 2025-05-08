@@ -46,10 +46,9 @@ vision_process:
 
 launch_control:
   ros__parameters:
-    first_default_velicity: 800.0
-    second_default_velocity: 300.0
+    first_default_velicity: 640.0
+    second_default_velocity: 291.0
     velocity_error: 0.00
-    distance: "test_moror" # 2025.4.22
 
 # launch_control:
 #   ros__parameters:
@@ -79,7 +78,7 @@ friction_first_velocity_paired_controller:
     motor1_control_error: /dart/first_left_friction/control_error
     motor2_measurement: /dart/first_right_friction/velocity
     motor2_control_error: /dart/first_right_friction/control_error
-    sync_compensation: 0.000
+    sync_compensation: 0.0008
     error_integral_compensation: 0.00
     filter_enable: true
     cutoff: 500.0
@@ -92,20 +91,20 @@ friction_first_left_pid_controller:
     measurement: /dart/first_left_friction/control_error
     control: /dart/first_left_friction/control_torque
     kp: 0.005
-    ki: 0.00002
+    ki: 0.0000225
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -170.0
+    integral_max: 170.0
 
 friction_first_right_pid_controller:
   ros__parameters:
     measurement: /dart/first_right_friction/control_error
     control: /dart/first_right_friction/control_torque
     kp: 0.005
-    ki: 0.00002
+    ki: 0.0000225
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -135.0
+    integral_max: 135.0
 
 # friction_first_left_pid_controller:
 #   ros__parameters:
@@ -131,7 +130,7 @@ friction_second_velocity_paired_controller:
     motor1_control_error: /dart/second_left_friction/control_error
     motor2_measurement: /dart/second_right_friction/velocity
     motor2_control_error: /dart/second_right_friction/control_error
-    sync_compensation: 0.000
+    sync_compensation: 0.0005
     error_integral_compensation: 0.00
     filter_enable: true
     cutoff: 500.0
@@ -142,7 +141,7 @@ friction_second_left_pid_controller:
   ros__parameters:
     measurement: /dart/second_left_friction/control_error
     control: /dart/second_left_friction/control_torque
-    kp: 0.005
+    kp: 0.003
     ki: 0.00002
     kd: 0.005
     integral_min: -150.0
@@ -152,7 +151,7 @@ friction_second_right_pid_controller:
   ros__parameters:
     measurement: /dart/second_right_friction/control_error
     control: /dart/second_right_friction/control_torque
-    kp: 0.005
+    kp: 0.003
     ki: 0.00002
     kd: 0.005
     integral_min: -150.0
