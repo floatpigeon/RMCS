@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <rclcpp/logger.hpp>
-#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 
@@ -13,125 +12,97 @@ public:
     LaunchControl()
         : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
         , logger_(get_logger()) {
-        first_friction_default_velocity_  = get_parameter("first_default_velicity").as_double();
-        second_friction_default_velocity_ = get_parameter("second_default_velocity").as_double();
 
-        register_input("/dart/master_control/friction_command", input_command_friction_enable_);
-        register_input("/dart/master_control/friction_control_velocity", input_dart_launch_velocity_);
-        register_output("/dart/first_friction/control_velocity", output_first_friction_velocity_, nan);
-        register_output("/dart/second_friction/control_velocity", output_second_friction_velocity_, nan);
+        auto first_friction_parameter = get_parameter("first_velocity");
+        if (first_friction_parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE) {
+            first_friction_working_velocity_.make_and_bind_directly(first_friction_parameter.as_double());
+        } else {
+            register_input(first_friction_parameter.as_string(), first_friction_working_velocity_);
+        }
 
-        register_input("/dart/master_control/filling_command", input_command_dart_filling_enable_);
-        register_input("/dart/conveyor/velocity", input_conveyor_velocity_, false);
-        register_output("/dart/conveyor/control_velocity", output_conveyor_control_velocity_, nan);
+        auto second_friction_parameter = get_parameter("second_velocity");
+        if (second_friction_parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE) {
+            second_friction_working_velocity_.make_and_bind_directly(second_friction_parameter.as_double());
+        } else {
+            register_input(second_friction_parameter.as_string(), second_friction_working_velocity_);
+        }
+
+        register_output("/dart/first_friction/control_velocity", first_friction_control_velocity_, nan);
+        register_output("/dart/second_friction/control_velocity", second_friction_control_velocity_, nan);
+        register_input("/dart/first_right_friction/velocity", first_friction_current_velocity_, false);
+        register_input("/dart/master_control/friction_command", friction_enable_flag_);
+
+        register_input("/dart/master_control/filling_command", filling_start_flag_);
+        register_input("/dart/conveyor/velocity", conveyor_current_velocity_, false);
+        register_output("/dart/conveyor/control_velocity", conveyor_control_velocity_, nan);
     }
 
     void update() override {
-        if (*input_command_friction_enable_ == false) {
-            filling_enable_                   = false;
-            *output_first_friction_velocity_  = 0;
-            *output_second_friction_velocity_ = 0;
+        if (*friction_enable_flag_) {
+            *first_friction_control_velocity_  = *first_friction_working_velocity_;
+            *second_friction_control_velocity_ = *second_friction_working_velocity_;
         } else {
-            update_friction_velocitys();
-        }
-
-        if (filling_enable_ == true) {
-            dart_filling_control_new();
-        } else if (filling_enable_ == false) {
-            conveyor_working_direction_        = 1;
-            *output_conveyor_control_velocity_ = nan;
-            dart_launch_count_                 = 0;
-
-            if (*input_command_dart_filling_enable_ == true) {
-                filling_enable_ = true;
+            dart_fill_working_ = false;
+            if (abs(*first_friction_current_velocity_) >= 10) {
+                *first_friction_control_velocity_  = 0.0;
+                *second_friction_control_velocity_ = 0.0;
+            } else {
+                *first_friction_control_velocity_  = nan;
+                *second_friction_control_velocity_ = nan;
             }
         }
 
-        RCLCPP_INFO(logger_, "control:%lf", *output_second_friction_velocity_);
+        if (dart_fill_working_) {
+            dart_filling_control();
+        } else {
+            conveyor_working_direction_ = -3;
+            *conveyor_control_velocity_ = nan;
+            dart_launch_count_          = 0;
+
+            if (*filling_start_flag_ == true) {
+                dart_fill_working_ = true;
+            }
+        }
     }
 
 private:
-    void update_friction_velocitys() {
-        // if (*input_dart_launch_velocity_ == nan) {
-        //     *output_first_friction_velocity_  = first_friction_default_velocity_;
-        //     *output_second_friction_velocity_ = second_friction_default_velocity_;
-        // } else {
-        //     // 需要测试实际初速和摩擦轮转速的换算关系，当前先按理想情况计算
-        //     double launch_rotation_speed      = *input_dart_launch_velocity_ / 0.05;
-        //     *output_second_friction_velocity_ = launch_rotation_speed;
-        //     *output_first_friction_velocity_  = launch_rotation_speed + 200; // 200这个值具体待测
-        // }
-
-        *output_first_friction_velocity_  = first_friction_default_velocity_;
-        *output_second_friction_velocity_ = second_friction_default_velocity_;
-
-        // *output_first_friction_velocity_  = nan;
-        // *output_second_friction_velocity_ = nan;
-    }
-
     void dart_filling_control() {
-        if (conveyor_velocity_stable_ && *input_conveyor_velocity_ == 0.0) {
-            if (conveyor_working_direction_ < 0) {
+        if (conveyor_velocity_stable_flag_ && *conveyor_current_velocity_ == 0.0) {
+            if (conveyor_working_direction_ > 0) {
                 dart_launch_count_++;
             }
-            conveyor_velocity_stable_   = false;
-            conveyor_working_direction_ = -1 * conveyor_working_direction_ - 0.5;
+            conveyor_velocity_stable_flag_ = false;
+            conveyor_working_direction_    = -1 * conveyor_working_direction_ - 2.4;
         }
 
-        if (abs(*input_conveyor_velocity_) >= 10.0) {
-            conveyor_velocity_stable_ = true;
+        if (abs(*conveyor_current_velocity_) > 10.0) {
+            conveyor_velocity_stable_flag_ = true;
         }
 
         if (dart_launch_count_ == 2) {
-            filling_enable_ = false;
+            dart_fill_working_ = false;
         }
 
-        *output_conveyor_control_velocity_ = filling_enable_ ? 80 * conveyor_working_direction_ : nan;
+        *conveyor_control_velocity_ = dart_fill_working_ ? 250 * conveyor_working_direction_ : nan;
     }
-
-    void dart_filling_control_new() {
-        if (conveyor_velocity_stable_ && *input_conveyor_velocity_ == 0.0) {
-            if (conveyor_working_direction_new_ > 0) {
-                dart_launch_count_++;
-            }
-            conveyor_velocity_stable_       = false;
-            conveyor_working_direction_new_ = -1 * conveyor_working_direction_new_ - 0.5;
-        }
-
-        if (abs(*input_conveyor_velocity_) > 10.0) {
-            conveyor_velocity_stable_ = true;
-        }
-
-        if (dart_launch_count_ == 2) {
-            filling_enable_ = false;
-        }
-
-        *output_conveyor_control_velocity_ = filling_enable_ ? 120 * conveyor_working_direction_new_ : nan;
-    }
-
     rclcpp::Logger logger_;
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 
-    double first_friction_default_velocity_;
-    double second_friction_default_velocity_;
+    InputInterface<bool> friction_enable_flag_;
+    InputInterface<double> first_friction_working_velocity_, second_friction_working_velocity_;
+    InputInterface<double> first_friction_current_velocity_;
+    OutputInterface<double> first_friction_control_velocity_, second_friction_control_velocity_;
 
-    InputInterface<bool> input_command_friction_enable_;     // from dart_auto_guide or dart_manual_control
-    InputInterface<double> input_dart_launch_velocity_;      // from dart_auto_guide or dart_manual_control,unit: m/s
-
-    OutputInterface<double> output_first_friction_velocity_; // close to filling direction called first
-    OutputInterface<double> output_second_friction_velocity_;
-
-    bool conveyor_velocity_stable_         = false;
-    bool filling_enable_                   = false;
-    int dart_launch_count_                 = 0;
-    double conveyor_working_direction_     = 1.0;
-    double conveyor_working_direction_new_ = -1.0;           // dart_filling_control_new
-    InputInterface<bool> input_command_dart_filling_enable_; // from dart_auto_guide or dart_manual_control
-    InputInterface<double> input_conveyor_velocity_;         // from dart_auto_guide or dart_manual_control
-    OutputInterface<double> output_conveyor_control_velocity_;
+    bool conveyor_velocity_stable_flag_ = false;
+    bool dart_fill_working_             = false;
+    int dart_launch_count_              = 0;
+    double conveyor_working_direction_  = -1.0;
+    InputInterface<bool> filling_start_flag_;
+    InputInterface<double> conveyor_current_velocity_;
+    OutputInterface<double> conveyor_control_velocity_;
 };
-
 } // namespace rmcs_core::controller::dartlauncher
 
 #include <pluginlib/class_list_macros.hpp>
+
 PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::LaunchControl, rmcs_executor::Component)

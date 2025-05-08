@@ -8,6 +8,16 @@
 
 namespace rmcs_core::controller::dartlauncher {
 
+/*
+双下：全部失能
+双中：初始状态{
+此时：
+    右上：开摩擦轮
+    左上再回中：自动发射两次
+}
+左上右下：调整角度
+*/
+
 class MasterControllerManual
     : public rmcs_executor::Component
     , public rclcpp::Node {
@@ -25,7 +35,8 @@ public:
         register_output("/dart/master_control/friction_command", output_friction_enable_, false);
         register_output("/dart/master_control/friction_control_velocity", output_dart_launch_velocity_, nan);
         register_output("/dart/master_control/angle_command", output_angle_control_enable_, false);
-        register_output("/dart/master_control/angle_control_vector", output_angle_control_, Eigen::Vector2d::Zero());
+        register_output(
+            "/dart/master_control/angle_control_vector", output_angle_control_, Eigen::Vector2d::Zero());
 
         register_output("/dart/master_control/filling_command", output_dart_filling_enable_, false);
         register_output("/dart/master_control/vision_guide_command", output_dart_vision_guide_enbale_, false);
@@ -49,22 +60,22 @@ private:
         friction_enable_      = false;
         filling_enable_       = false;
 
-        if (switch_left_ == Switch::UP && switch_right_ == Switch::UP) {
+        if (switch_left_ == Switch::UP && switch_right_ == Switch::DOWN) {
             angle_control_enable_ = true;
         }
 
-        if (switch_right_ == Switch::MIDDLE || switch_right_ == Switch::UP) {
+        if (switch_left_ != Switch::DOWN && switch_right_ == Switch::UP) {
             friction_enable_ = true;
         }
 
-        if (switch_left_ == Switch::UP && switch_right_ == Switch::MIDDLE) {
+        if (switch_left_ == Switch::UP && friction_enable_) {
             filling_enable_ = true;
         }
         *output_dart_vision_guide_enbale_ = false;
     }
 
     void update_output_control_values() {
-        double pitch_control_input_ = 25.0 * input_joystick_left_->x();
+        double pitch_control_input_ = 20.0 * input_joystick_left_->x();
         double yaw_control_input_   = 30.0 * input_joystick_right_->y();
 
         output_angle_control_->x() = std::max(-limit_velocity, std::min(limit_velocity, yaw_control_input_));
@@ -100,21 +111,3 @@ private:
 
 #include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::dartlauncher::MasterControllerManual, rmcs_executor::Component)
-
-/*
-双下停止
-右中开摩擦轮
-右中左中填装复位，此时左拨上再回中连续打两发镖
-双上手动控制角度启用，操作右摇杆控制
-*/
-
-/*
-双下：失能
-双中：初始化{
-    此时：
-        右上：开摩擦轮
-        左上再回中：自动发射两次
-        左下：复位
-}
-左上右下：调整角度
-*/

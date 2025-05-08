@@ -27,8 +27,7 @@ public:
         : Node{get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)}
         , librmcs::client::CBoard{static_cast<int>(get_parameter("usb_pid").as_int())}
         , logger_(get_logger())
-        , dart_command_(
-              create_partner_component<DartCommand>(get_component_name() + "_command", *this))
+        , dart_command_(create_partner_component<DartCommand>(get_component_name() + "_command", *this))
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
@@ -38,18 +37,14 @@ public:
 
         friction_motors_[0].configure(
             DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
-        friction_motors_[1].configure(
-            DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
+        friction_motors_[1].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
         friction_motors_[2].configure(
             DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
-        friction_motors_[3].configure(
-            DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
+        friction_motors_[3].configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reduction_ratio(1.));
 
-        conveyor_motor_.configure(
-            DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
+        conveyor_motor_.configure(DjiMotor::Config{DjiMotor::Type::M3508}.set_reversed().set_reduction_ratio(1.));
 
-        yaw_angle_motor_.configure(
-            DjiMotor::Config{DjiMotor::Type::M2006}.enable_multi_turn_angle());
+        yaw_angle_motor_.configure(DjiMotor::Config{DjiMotor::Type::M2006}.enable_multi_turn_angle());
         pitch_left_motor_.configure(
             DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
         pitch_right_motor_.configure(
@@ -61,9 +56,6 @@ public:
         event_thread_.join();
     }
     void update() override {
-        imu_.update_status();
-        *imu_data_ = Eigen::Quaterniond(imu_.q0(), imu_.q1(), imu_.q2(), imu_.q3());
-
         dr16_.update_status();
         update_motors();
         update_imu();
@@ -114,6 +106,13 @@ private:
     void update_imu() {
         imu_.update_status();
         Eigen::Quaterniond dart_imu_pose{imu_.q0(), imu_.q1(), imu_.q2(), imu_.q3()};
+        dart_imu_pose.normalize();
+        Eigen::Matrix3d rotationMatrix = dart_imu_pose.toRotationMatrix();
+        Eigen::Vector3d rpy_angles     = rotationMatrix.eulerAngles(2, 0, 1);
+        double yaw                     = rpy_angles[0] * 180.0 / M_PI;
+        double pitch                   = rpy_angles[1] * 180.0 / M_PI;
+        double roll                    = rpy_angles[2] * 180.0 / M_PI;
+        RCLCPP_INFO(logger_, "yaw:%lf;pitch:%lf;roll:%lf;", yaw, pitch, roll);
     }
 
 protected:
@@ -163,9 +162,10 @@ protected:
         dr16_.store_status(uart_data, uart_data_length);
     }
 
-    void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
-        imu_.store_accelerometer_status(x, y, z);
-    }
+    // void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
+    //     imu_.store_accelerometer_status(x, y, z);
+    // }
+
     void gyroscope_receive_callback(int16_t x, int16_t y, int16_t z) override {
         imu_.store_gyroscope_status(x, y, z);
     }

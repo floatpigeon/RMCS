@@ -22,7 +22,8 @@ public:
 
     void update() override {
         if (!*angle_control_enable_) {
-            reset_all_controls();
+            *yaw_control_velocity_   = nan;
+            *pitch_control_velocity_ = nan;
         } else {
             *yaw_control_velocity_   = angle_control_vector_->x();
             *pitch_control_velocity_ = angle_control_vector_->y();
@@ -30,11 +31,6 @@ public:
     }
 
 private:
-    void reset_all_controls() {
-        *yaw_control_velocity_   = nan;
-        *pitch_control_velocity_ = nan;
-    }
-
     void calibration_angles() {}                           // to be improved in the future
 
     rclcpp::Logger logger_;
