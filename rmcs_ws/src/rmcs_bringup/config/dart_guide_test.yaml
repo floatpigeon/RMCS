@@ -5,7 +5,8 @@ rmcs_executor:
       # - rmcs_dart_guide::DartLauncherGuidance -> dart_guide
       # - rmcs_dart_guide::LidarController -> lidar_controller
       # - rmcs_dart_guide::DistanceMeasureDemo -> distance_measure
-      - rmcs_dart_guide::ImagePublisher -> image_publisher
+      - rmcs_dart_guide::ImagePublisher -> camera_image_publisher
+      - rmcs_dart_guide::ImagePublisher -> display_image_publisher
       - rmcs_dart_guide::DartCameraController -> camera_controller
 
 dart_guide:
@@ -24,14 +25,28 @@ distance_measure:
   ros__parameters:
     log_enable: true
 
-image_publisher:
+camera_image_publisher:
   ros__parameters:
     Interface_name: /dart_guide/camera_image
     topic_name: /dart_guide/camera/camera_image
-    publish_freq: 10.0
+    publish_freq: 60.0
+    image_type: bgr8
+
+display_image_publisher:
+  ros__parameters:
+    Interface_name: /dart_guide/display_image
+    topic_name: /dart_guide/camera/display_image
+    publish_freq: 60.0
+    image_type: mono8
 
 camera_controller:
   ros__parameters:
-    invert_image: false
-    exposure_time: 3000
+    invert_image: true
+    exposure_time: 1000
     gain: 12.00
+    L_H: 35.0
+    L_S: 0.0
+    L_V: 0.0
+    U_H: 85.0
+    U_S: 255.0
+    U_V: 255.0

@@ -43,14 +43,17 @@ public:
             *second_friction_control_velocity_ = *second_friction_working_velocity_;
         } else {
             dart_fill_working_ = false;
-            if (abs(*first_friction_current_velocity_) >= 10) {
-                *first_friction_control_velocity_  = 0.0;
-                *second_friction_control_velocity_ = 0.0;
-            } else {
+            if (abs(*first_friction_current_velocity_) <= 5 || stop_count_ > 1000) {
                 *first_friction_control_velocity_  = nan;
                 *second_friction_control_velocity_ = nan;
+            } else {
+                *first_friction_control_velocity_  = 0.0;
+                *second_friction_control_velocity_ = 0.0;
+                stop_count_++;
             }
         }
+
+        stop_count_ = 0;
 
         if (dart_fill_working_) {
             dart_filling_control();
@@ -100,6 +103,7 @@ private:
     InputInterface<bool> filling_start_flag_;
     InputInterface<double> conveyor_current_velocity_;
     OutputInterface<double> conveyor_control_velocity_;
+    int stop_count_ = 0;
 };
 } // namespace rmcs_core::controller::dartlauncher
 
