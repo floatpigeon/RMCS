@@ -73,8 +73,8 @@ friction_first_left_pid_controller:
     kp: 0.005
     ki: 0.00002
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -200.0
+    integral_max: 200.0
 
 friction_first_right_pid_controller:
   ros__parameters:
@@ -83,8 +83,8 @@ friction_first_right_pid_controller:
     kp: 0.005
     ki: 0.00002
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -200.0
+    integral_max: 200.0
 
 # friction_first_left_pid_controller:
 #   ros__parameters:
@@ -124,8 +124,8 @@ friction_second_left_pid_controller:
     kp: 0.005
     ki: 0.00002
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -200.0
+    integral_max: 200.0
 
 friction_second_right_pid_controller:
   ros__parameters:
@@ -134,8 +134,8 @@ friction_second_right_pid_controller:
     kp: 0.005
     ki: 0.00002
     kd: 0.005
-    integral_min: -150.0
-    integral_max: 150.0
+    integral_min: -200.0
+    integral_max: 200.0
 
 yaw_velocity_pid_controller:
   ros__parameters:
@@ -154,7 +154,7 @@ pitch_velocity_sync_controller:
     motor2_measurement: /dart/pitch_right/velocity
     motor2_control_error: /dart/pitch_right/control_error
     sync_compensation: 0.05
-    error_integral_compensation: 0.2
+    error_integral_compensation: 0.5
     filter_enable: false
     cutoff: 600.0
     motor1_filtered_topic: /aa

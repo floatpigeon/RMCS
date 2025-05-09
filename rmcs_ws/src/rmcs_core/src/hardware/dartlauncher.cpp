@@ -106,13 +106,7 @@ private:
     void update_imu() {
         imu_.update_status();
         Eigen::Quaterniond dart_imu_pose{imu_.q0(), imu_.q1(), imu_.q2(), imu_.q3()};
-        dart_imu_pose.normalize();
-        Eigen::Matrix3d rotationMatrix = dart_imu_pose.toRotationMatrix();
-        Eigen::Vector3d rpy_angles     = rotationMatrix.eulerAngles(2, 0, 1);
-        double yaw                     = rpy_angles[0] * 180.0 / M_PI;
-        double pitch                   = rpy_angles[1] * 180.0 / M_PI;
-        double roll                    = rpy_angles[2] * 180.0 / M_PI;
-        RCLCPP_INFO(logger_, "yaw:%lf;pitch:%lf;roll:%lf;", yaw, pitch, roll);
+        *imu_data_ = dart_imu_pose;
     }
 
 protected:
@@ -162,9 +156,9 @@ protected:
         dr16_.store_status(uart_data, uart_data_length);
     }
 
-    // void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
-    //     imu_.store_accelerometer_status(x, y, z);
-    // }
+    void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
+        imu_.store_accelerometer_status(x, y, z);
+    }
 
     void gyroscope_receive_callback(int16_t x, int16_t y, int16_t z) override {
         imu_.store_gyroscope_status(x, y, z);
