@@ -71,14 +71,14 @@ public:
 private:
     void dart_filling_control() {
         if (conveyor_velocity_stable_flag_ && *conveyor_current_velocity_ == 0.0) {
-            if (conveyor_working_direction_ > 0) {
+            if (conveyor_working_direction_ < 0) {
                 dart_launch_count_++;
             }
             conveyor_velocity_stable_flag_ = false;
-            conveyor_working_direction_    = -1 * conveyor_working_direction_ - 2.4;
+            conveyor_working_direction_    = -1 * conveyor_working_direction_ - 2.2;
         }
 
-        if (abs(*conveyor_current_velocity_) > 10.0) {
+        if (abs(*conveyor_current_velocity_) > 5.0) {
             conveyor_velocity_stable_flag_ = true;
         }
 
@@ -86,7 +86,7 @@ private:
             dart_fill_working_ = false;
         }
 
-        *conveyor_control_velocity_ = dart_fill_working_ ? 250 * conveyor_working_direction_ : nan;
+        *conveyor_control_velocity_ = dart_fill_working_ ? 200 * conveyor_working_direction_ : nan;
     }
     rclcpp::Logger logger_;
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();

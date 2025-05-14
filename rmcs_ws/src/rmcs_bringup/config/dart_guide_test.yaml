@@ -36,7 +36,7 @@ display_image_publisher:
   ros__parameters:
     Interface_name: /dart_guide/display_image
     topic_name: /dart_guide/camera/display_image
-    publish_freq: 60.0
+    publish_freq: 120.0
     image_type: mono8
 
 camera_controller:
