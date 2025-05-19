@@ -3,8 +3,7 @@ rmcs_executor:
     update_rate: 1000.0
     components:
       - rmcs_core::hardware::DartLauncher -> dart_launcher_hardware
-      - rmcs_core::controller::dartlauncher::MasterControllerManual -> dart_master_control
-      # - rmcs_core::controller::dartlauncher::DartAutoGuide -> dart_master_control
+      - rmcs_core::controller::dartlauncher::DartManualControl -> dart_master_control
 
       - rmcs_core::controller::dartlauncher::LaunchControl -> launch_control
       - rmcs_core::controller::dartlauncher::AngleControl -> angle_control
@@ -18,6 +17,7 @@ rmcs_executor:
       - rmcs_core::controller::pid::ErrorPidController -> friction_second_right_pid_controller
 
       - rmcs_core::controller::pid::PidController -> yaw_velocity_pid_controller
+      - rmcs_core::controller::pid::PidController -> pitch_angle_pid_controller
       - rmcs_core::controller::pid::CrossCoupledController -> pitch_velocity_sync_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_left_velocity_pid_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_right_velocity_pid_controller
@@ -41,6 +41,9 @@ launch_control:
 angle_control:
   ros__parameters:
     auto_mode: false
+    pitch_init_angle: 36.0
+    pitch_lower_limit: 25.0
+    pitch_upper_limit: 39.0
 
 conveyor_velocity_pid_controller:
   ros__parameters:
@@ -128,6 +131,17 @@ yaw_velocity_pid_controller:
     ki: 0.00
     kd: 0.009373434
 
+pitch_angle_pid_controller:
+  ros__parameters:
+    measurement: /dart/pitch_angle/current_angle
+    setpoint: /dart/pitch_angle/setpoint
+    control: /dart/pitch_angle/control_velocity
+    kp: 100.0
+    ki: 0.01
+    kd: 0.00
+    integral_min: -200.0
+    integral_max: 200.0
+
 pitch_velocity_sync_controller:
   ros__parameters:
     setpoint: /dart/pitch_angle/control_velocity
@@ -138,9 +152,9 @@ pitch_velocity_sync_controller:
     sync_compensation: 0.05
     error_integral_compensation: 0.5
     filter_enable: false
-    cutoff: 600.0
-    motor1_filtered_topic: /aa
-    motor2_filtered_topic: /bb
+    cutoff: 500.0
+    motor1_filtered_topic: /motor1/no_use
+    motor2_filtered_topic: /motor2/no_use
 
 pitch_left_velocity_pid_controller:
   ros__parameters:

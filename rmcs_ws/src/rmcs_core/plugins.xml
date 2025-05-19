@@ -80,6 +80,9 @@
   <class type="rmcs_core::controller::dartlauncher::MasterControllerManual" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::controller::dartlauncher::DartManualControl" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
   <class type="rmcs_core::controller::pid::CrossCoupledController" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
