@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/src/Geometry/Quaternion.h>
@@ -7,6 +8,7 @@
 #include "hardware/device/dji_motor.hpp"
 #include "hardware/device/dr16.hpp"
 #include "librmcs/client/cboard.hpp"
+#include "librmcs/utility/ring_buffer.hpp"
 
 #include <eigen3/Eigen/Dense>
 #include <rclcpp/logger.hpp>
@@ -15,6 +17,7 @@
 #include <rclcpp/node_options.hpp>
 #include <rmcs_description/tf_description.hpp>
 #include <rmcs_executor/component.hpp>
+#include <serial_interface.hpp>
 
 namespace rmcs_core::hardware {
 
@@ -49,6 +52,16 @@ public:
             DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
         pitch_right_motor_.configure(
             DjiMotor::Config{DjiMotor::Type::M2006}.set_reversed().enable_multi_turn_angle());
+
+        register_output("/referee/serial", referee_serial_);
+        referee_serial_->read = [this](std::byte* buffer, size_t size) {
+            return referee_ring_buffer_receive_.pop_front_multi(
+                [&buffer](std::byte byte) { *buffer++ = byte; }, size);
+        };
+        referee_serial_->write = [this](const std::byte* buffer, size_t size) {
+            transmit_buffer_.add_uart1_transmission(buffer, size);
+            return size;
+        };
     }
 
     ~DartLauncher() override {
@@ -196,6 +209,9 @@ private:
     device::Dr16 dr16_{*this};
     device::Bmi088 imu_{1000, 0.2, 0.0};
     OutputInterface<Eigen::Quaterniond> imu_data_;
+
+    librmcs::utility::RingBuffer<std::byte> referee_ring_buffer_receive_{256};
+    OutputInterface<rmcs_msgs::SerialInterface> referee_serial_;
 
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 

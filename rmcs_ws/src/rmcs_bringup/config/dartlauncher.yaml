@@ -35,8 +35,8 @@ dart_master_control:
 
 launch_control:
   ros__parameters:
-    first_velocity: 640.0
-    second_velocity: 290.0
+    first_velocity: 660.0
+    second_velocity: 320.0
 
 angle_control:
   ros__parameters:
@@ -65,7 +65,6 @@ friction_first_velocity_paired_controller:
     motor1_filtered_topic: /dart/first_left_friction/filtered_velocity
     motor2_filtered_topic: /dart/first_right_friction/filtered_velocity
 
-
 friction_first_left_pid_controller:
   ros__parameters:
     measurement: /dart/first_left_friction/control_error
@@ -85,23 +84,6 @@ friction_first_right_pid_controller:
     kd: 0.005
     integral_min: -200.0
     integral_max: 200.0
-
-# friction_first_left_pid_controller:
-#   ros__parameters:
-#     measurement: /dart/first_left_friction/control_error
-#     control: /dart/first_left_friction/control_torque
-#     kp: 0.012
-#     ki: 0.00
-#     kd: 0.005
-
-# friction_first_right_pid_controller:
-#   ros__parameters:
-#     measurement: /dart/first_right_friction/control_error
-#     control: /dart/first_right_friction/control_torque
-#     kp: 0.012
-#     ki: 0.00
-#     kd: 0.005
-
 
 friction_second_velocity_paired_controller:
   ros__parameters:
@@ -159,7 +141,6 @@ pitch_velocity_sync_controller:
     cutoff: 600.0
     motor1_filtered_topic: /aa
     motor2_filtered_topic: /bb
-
 
 pitch_left_velocity_pid_controller:
   ros__parameters:

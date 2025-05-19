@@ -1,7 +1,10 @@
 #include <cstdlib>
+#include <eigen3/Eigen/Dense>
 #include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
+#include <switch.hpp>
 
 namespace rmcs_core::controller::dartlauncher {
 
@@ -35,6 +38,12 @@ public:
         register_input("/dart/master_control/filling_command", filling_start_flag_);
         register_input("/dart/conveyor/velocity", conveyor_current_velocity_, false);
         register_output("/dart/conveyor/control_velocity", conveyor_control_velocity_, nan);
+
+        //
+        register_input("/remote/switch/left", input_switch_left_, false);
+        register_input("/remote/switch/right", input_switch_right_, false);
+        register_input("/remote/joystick/left", input_joystick_left_, false);
+        register_input("/remote/joystick/right", input_joystick_right_, false);
     }
 
     void update() override {
@@ -55,15 +64,33 @@ public:
 
         stop_count_ = 0;
 
-        if (dart_fill_working_) {
-            dart_filling_control();
-        } else {
-            conveyor_working_direction_ = -3;
-            *conveyor_control_velocity_ = nan;
-            dart_launch_count_          = 0;
+        //     if (dart_fill_working_) {
+        //         dart_filling_control();
+        //     } else {
+        //         conveyor_working_direction_ = -3;
+        //         if (abs(*conveyor_current_velocity_) > 5.0) {
+        //             *conveyor_control_velocity_ = 0.0;
+        //         } else {
+        //             *conveyor_control_velocity_ = nan;
+        //         }
 
-            if (*filling_start_flag_ == true) {
-                dart_fill_working_ = true;
+        //         dart_launch_count_ = 0;
+        //         if (*filling_start_flag_ == true) {
+        //             dart_fill_working_ = true;
+        //         }
+        //     }
+
+        if (*friction_enable_flag_) {
+            if (*input_switch_left_ == rmcs_msgs::Switch::UP) {
+                if (input_joystick_left_->x() > 0.5) {
+                    *conveyor_control_velocity_ = 200;
+                } else if (input_joystick_left_->x() < -0.5) {
+                    *conveyor_control_velocity_ = -400;
+                } else {
+                    *conveyor_control_velocity_ = nan;
+                }
+            } else {
+                *conveyor_control_velocity_ = nan;
             }
         }
     }
@@ -75,7 +102,7 @@ private:
                 dart_launch_count_++;
             }
             conveyor_velocity_stable_flag_ = false;
-            conveyor_working_direction_    = -1 * conveyor_working_direction_ - 2.2;
+            conveyor_working_direction_    = -1 * conveyor_working_direction_ - 2.0;
         }
 
         if (abs(*conveyor_current_velocity_) > 5.0) {
@@ -104,6 +131,13 @@ private:
     InputInterface<double> conveyor_current_velocity_;
     OutputInterface<double> conveyor_control_velocity_;
     int stop_count_ = 0;
+
+    //
+    bool filling_manual_control_ = false;
+    InputInterface<rmcs_msgs::Switch> input_switch_left_;
+    InputInterface<rmcs_msgs::Switch> input_switch_right_;
+    InputInterface<Eigen::Vector2d> input_joystick_left_;
+    InputInterface<Eigen::Vector2d> input_joystick_right_;
 };
 } // namespace rmcs_core::controller::dartlauncher
 
