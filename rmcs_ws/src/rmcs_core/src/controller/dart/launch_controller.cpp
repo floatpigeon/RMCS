@@ -33,9 +33,9 @@ public:
         register_output("/dart/first_friction/control_velocity", first_friction_control_velocity_, nan);
         register_output("/dart/second_friction/control_velocity", second_friction_control_velocity_, nan);
         register_input("/dart/first_right_friction/velocity", first_friction_current_velocity_, false);
-        register_input("/dart/master_control/friction_command", friction_enable_flag_);
+        register_input("/dart/control_command/friction_enable", friction_enable_flag_);
 
-        register_input("/dart/master_control/filling_command", filling_start_flag_);
+        register_input("/dart/control_command/filling_start", filling_start_flag_);
         register_input("/dart/conveyor/velocity", conveyor_current_velocity_, false);
         register_output("/dart/conveyor/control_velocity", conveyor_control_velocity_, nan);
 
@@ -133,7 +133,6 @@ private:
     int stop_count_ = 0;
 
     //
-    bool filling_manual_control_ = false;
     InputInterface<rmcs_msgs::Switch> input_switch_left_;
     InputInterface<rmcs_msgs::Switch> input_switch_right_;
     InputInterface<Eigen::Vector2d> input_joystick_left_;

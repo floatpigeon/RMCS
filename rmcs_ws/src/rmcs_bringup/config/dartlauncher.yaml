@@ -41,7 +41,7 @@ launch_control:
 angle_control:
   ros__parameters:
     auto_mode: false
-    pitch_init_angle: 36.0
+    pitch_init_angle: 37.5
     pitch_lower_limit: 25.0
     pitch_upper_limit: 39.0
 
@@ -139,8 +139,8 @@ pitch_angle_pid_controller:
     kp: 100.0
     ki: 0.01
     kd: 0.00
-    integral_min: -200.0
-    integral_max: 200.0
+    integral_min: -100.0
+    integral_max: 100.0
 
 pitch_velocity_sync_controller:
   ros__parameters:

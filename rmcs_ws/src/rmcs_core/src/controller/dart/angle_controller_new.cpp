@@ -26,11 +26,10 @@ public:
         pitch_upper_limit_ = get_parameter("pitch_upper_limit").as_double();
 
         register_input("/dart/device/imu_data", imu_data_);
-        register_input("/dart/master_control/angle_control_vector", angle_control_vector_);
+        register_input("/dart/control_command/pitch_control", pitch_control_command_);
 
         register_output("/dart/pitch_angle/setpoint", pitch_angle_setpoint_);
         register_output("/dart/pitch_angle/current_angle", pitch_angle_current_value_, nan);
-        register_output("/dart/yaw_angle/control_velocity", yaw_angle_control_velocity_);
 
         launch_time_ = std::chrono::steady_clock::now();
     }
@@ -53,10 +52,8 @@ public:
         RCLCPP_INFO(
             logger_, "current_pitch:%lf,setpoint:%lf", *pitch_angle_current_value_, *pitch_angle_setpoint_);
 
-        double pitch_expected_angle = *pitch_angle_setpoint_ + 0.0005 * angle_control_vector_->y();
+        double pitch_expected_angle = *pitch_angle_setpoint_ + 0.0005 * (*pitch_control_command_);
         *pitch_angle_setpoint_ = std::max(pitch_lower_limit_, std::min(pitch_expected_angle, pitch_upper_limit_));
-
-        *yaw_angle_control_velocity_ = 30 * angle_control_vector_->x();
     }
 
 private:
@@ -75,10 +72,9 @@ private:
     std::chrono::steady_clock::time_point launch_time_;
     InputInterface<Eigen::Quaterniond> imu_data_;
 
-    InputInterface<Eigen::Vector2d> angle_control_vector_;
+    InputInterface<double> pitch_control_command_;
     OutputInterface<double> pitch_angle_setpoint_;
     OutputInterface<double> pitch_angle_current_value_;
-    OutputInterface<double> yaw_angle_control_velocity_;
 
     double pitch_init_angle_;
     double pitch_upper_limit_;

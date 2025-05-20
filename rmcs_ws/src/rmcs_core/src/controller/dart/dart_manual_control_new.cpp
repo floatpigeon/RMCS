@@ -21,10 +21,10 @@ public:
         register_input("/remote/joystick/left", input_joystick_left_, false);
         register_input("/remote/joystick/right", input_joystick_right_, false);
 
-        register_output("/dart/master_control/friction_command", friction_enable_command_, false);
-        register_output("/dart/master_control/filling_command", dart_filling_start_command_, false);
-        register_output(
-            "/dart/master_control/angle_control_vector", angle_control_vector_, Eigen::Vector2d::Zero());
+        register_output("/dart/control_command/friction_enable", friction_enable_command_, false);
+        register_output("/dart/control_command/filling_start", dart_filling_start_command_, false);
+        register_output("/dart/control_command/pitch_control", pitch_control_command_, nan);
+        register_output("/dart/yaw_angle/control_velocity", yaw_control_velocity_, nan);
     }
 
     void update() override {
@@ -44,11 +44,11 @@ private:
 
         if (switch_left_ == Switch::UP && switch_right_ == Switch::DOWN) {
             // 左上右下，角度控制
-            angle_control_vector_->x() = input_joystick_left_->y();
-            angle_control_vector_->y() = input_joystick_right_->x();
+            *yaw_control_velocity_  = 30 * input_joystick_left_->y();
+            *pitch_control_command_ = input_joystick_right_->x();
         } else {
-            angle_control_vector_->x() = 0;
-            angle_control_vector_->y() = 0;
+            *yaw_control_velocity_  = nan;
+            *pitch_control_command_ = 0;
         }
 
         if (switch_left_ != Switch::DOWN && switch_right_ == Switch::UP) {
@@ -74,7 +74,8 @@ private:
     InputInterface<Eigen::Vector2d> input_joystick_left_;
     InputInterface<Eigen::Vector2d> input_joystick_right_;
 
-    OutputInterface<Eigen::Vector2d> angle_control_vector_;
+    OutputInterface<double> yaw_control_velocity_;
+    OutputInterface<double> pitch_control_command_;
     OutputInterface<bool> friction_enable_command_;
     OutputInterface<bool> dart_filling_start_command_;
 };
