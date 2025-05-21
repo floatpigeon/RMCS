@@ -33,6 +33,7 @@ public:
         register_output("/dart/first_friction/control_velocity", first_friction_control_velocity_, nan);
         register_output("/dart/second_friction/control_velocity", second_friction_control_velocity_, nan);
         register_input("/dart/first_right_friction/velocity", first_friction_current_velocity_, false);
+        register_input("/dart/second_right_friction/velocity", second_friction_current_velocity_, false);
         register_input("/dart/control_command/friction_enable", friction_enable_flag_);
 
         register_input("/dart/control_command/filling_start", filling_start_flag_);
@@ -115,12 +116,13 @@ private:
 
         *conveyor_control_velocity_ = dart_fill_working_ ? 200 * conveyor_working_direction_ : nan;
     }
+
     rclcpp::Logger logger_;
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
 
     InputInterface<bool> friction_enable_flag_;
     InputInterface<double> first_friction_working_velocity_, second_friction_working_velocity_;
-    InputInterface<double> first_friction_current_velocity_;
+    InputInterface<double> first_friction_current_velocity_, second_friction_current_velocity_;
     OutputInterface<double> first_friction_control_velocity_, second_friction_control_velocity_;
 
     bool conveyor_velocity_stable_flag_ = false;

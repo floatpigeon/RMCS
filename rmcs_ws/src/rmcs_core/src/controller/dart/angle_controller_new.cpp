@@ -47,8 +47,11 @@ public:
                 return;
             }
         }
+        auto pitch_angle_velue_ = calc_pitch_angle();
+        if (pitch_angle_velue_ > 20 && pitch_angle_velue_ < 40) {
+            *pitch_angle_current_value_ = pitch_angle_velue_; // 保护机械结构，防止imu发疯
+        }
 
-        *pitch_angle_current_value_ = calc_pitch_angle();
         RCLCPP_INFO(
             logger_, "current_pitch:%lf,setpoint:%lf", *pitch_angle_current_value_, *pitch_angle_setpoint_);
 
@@ -75,6 +78,8 @@ private:
     InputInterface<double> pitch_control_command_;
     OutputInterface<double> pitch_angle_setpoint_;
     OutputInterface<double> pitch_angle_current_value_;
+
+    InputInterface<double> dart_guide_pitch_;
 
     double pitch_init_angle_;
     double pitch_upper_limit_;
