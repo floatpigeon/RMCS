@@ -68,4 +68,13 @@
   <class type="rmcs_core::referee::app::ui::Hero" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::hardware::SMCHardware" base_class_type="rmcs_executor::Component">
+    <description>FloatPigeon SMC Developments</description>
+  </class>
+  <class type="rmcs_core::controller::gimbal::SMC" base_class_type="rmcs_executor::Component">
+    <description>FloatPigeon SMC Developments</description>
+  </class>
+  <class type="rmcs_core::controller::gimbal::MotorSMC" base_class_type="rmcs_executor::Component">
+    <description>FloatPigeon SMC Developments</description>
+  </class>
 </library>
