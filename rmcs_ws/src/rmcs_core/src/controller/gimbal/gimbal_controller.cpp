@@ -20,9 +20,7 @@ class GimbalController
     , public rclcpp::Node {
 public:
     GimbalController()
-        : Node(
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
+        : Node(get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)) {
         upper_limit_ = get_parameter("upper_limit").as_double() + (std::numbers::pi / 2);
         lower_limit_ = get_parameter("lower_limit").as_double() + (std::numbers::pi / 2);
 
@@ -77,8 +75,7 @@ public:
 
 private:
     void update_yaw_axis() {
-        auto yaw_axis =
-            fast_tf::cast<PitchLink>(YawLink::DirectionVector{Eigen::Vector3d::UnitZ()}, *tf_);
+        auto yaw_axis = fast_tf::cast<PitchLink>(YawLink::DirectionVector{Eigen::Vector3d::UnitZ()}, *tf_);
         *yaw_axis_filtered_ += 0.1 * (*fast_tf::cast<OdomImu>(yaw_axis, *tf_));
         yaw_axis_filtered_->normalize();
     }
@@ -90,8 +87,7 @@ private:
     }
 
     void update_auto_aim_control_direction(PitchLink::DirectionVector& dir) {
-        dir =
-            fast_tf::cast<PitchLink>(OdomImu::DirectionVector{*auto_aim_control_direction_}, *tf_);
+        dir             = fast_tf::cast<PitchLink>(OdomImu::DirectionVector{*auto_aim_control_direction_}, *tf_);
         control_enabled = true;
     }
 
@@ -99,8 +95,7 @@ private:
         if (control_enabled)
             dir = fast_tf::cast<PitchLink>(control_direction_, *tf_);
         else {
-            auto odom_dir =
-                fast_tf::cast<OdomImu>(PitchLink::DirectionVector{Eigen::Vector3d::UnitX()}, *tf_);
+            auto odom_dir = fast_tf::cast<OdomImu>(PitchLink::DirectionVector{Eigen::Vector3d::UnitX()}, *tf_);
             if (odom_dir->x() == 0 || odom_dir->y() == 0)
                 return;
             odom_dir->z() = 0;
@@ -138,11 +133,9 @@ private:
 
         auto angle = std::acos(cos_angle);
         if (angle < upper_limit_)
-            *dir =
-                Eigen::AngleAxisd{upper_limit_, (yaw_axis->cross(*dir)).normalized()} * (*yaw_axis);
+            *dir = Eigen::AngleAxisd{upper_limit_, (yaw_axis->cross(*dir)).normalized()} * (*yaw_axis);
         else if (angle > lower_limit_)
-            *dir =
-                Eigen::AngleAxisd{lower_limit_, (yaw_axis->cross(*dir)).normalized()} * (*yaw_axis);
+            *dir = Eigen::AngleAxisd{lower_limit_, (yaw_axis->cross(*dir)).normalized()} * (*yaw_axis);
     }
 
     void update_control_errors(PitchLink::DirectionVector& dir) {
@@ -151,11 +144,10 @@ private:
 
         double &x = dir->x(), &y = dir->y(), &z = dir->z();
         double sp = std::sin(pitch), cp = std::cos(pitch);
-        double a          = x * cp + z * sp;
-        double b          = std::sqrt(y * y + a * a);
-        *yaw_angle_error_ = std::atan2(y, a);
-        *pitch_angle_error_ =
-            -std::atan2(z * cp * cp - x * cp * sp + sp * b, -z * cp * sp + x * sp * sp + cp * b);
+        double a            = x * cp + z * sp;
+        double b            = std::sqrt(y * y + a * a);
+        *yaw_angle_error_   = std::atan2(y, a);
+        *pitch_angle_error_ = -std::atan2(z * cp * cp - x * cp * sp + sp * b, -z * cp * sp + x * sp * sp + cp * b);
     }
 
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
