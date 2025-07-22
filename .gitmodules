@@ -13,3 +13,6 @@
 [submodule "rmcs_ws/src/serial"]
 	path = rmcs_ws/src/serial
 	url = git@github.com:Alliance-Algorithm/ros2-serial.git
+[submodule "rmcs_ws/src/alliance_ros_auto_aim"]
+	path = rmcs_ws/src/alliance_ros_auto_aim
+	url = git@github.com:Alliance-Algorithm/alliance_ros_auto_aim.git
