@@ -1,4 +1,6 @@
+#include <cmath>
 #include <rclcpp/logger.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 #include <switch.hpp>
@@ -23,22 +25,30 @@ public:
 
         moment_of_inertia_    = get_parameter("J").as_double();
         damping_conefficient_ = get_parameter("B").as_double();
-        transmission_gain     = get_parameter("transmission_gain").as_double();
+        gear_ratio            = get_parameter("gear_ratio").as_double();
 
         register_input(get_parameter("angle_error").as_string(), angle_error_);
         register_input(get_parameter("current_velocity").as_string(), current_velocity_);
         register_input(get_parameter("target_velocity").as_string(), target_velocity_);
         register_input(get_parameter("target_acceleration").as_string(), target_acceleration_);
+
+        register_output(get_parameter("control_torque").as_string(), control_torque_);
+
+        // debug
+        register_output("/smc/s_value", sliding_surface_value_);
     }
 
     void update() override {
+
         if ((*switch_left_ == rmcs_msgs::Switch::DOWN && *switch_right_ == rmcs_msgs::Switch::DOWN)
             || (*switch_left_ == rmcs_msgs::Switch::UNKNOWN && *switch_right_ == rmcs_msgs::Switch::UNKNOWN)) {
             reset();
             return;
         }
 
-        *control_torque_ = calc_control_value() / transmission_gain;
+        *control_torque_ = calc_control_value();
+
+        RCLCPP_INFO(logger_, "control:%8lf", *control_torque_);
     }
 
 private:
@@ -49,7 +59,7 @@ private:
 
     double calc_control_value() {
         double velocity_error = *current_velocity_ - *target_velocity_;
-        double s              = c_ * (*angle_error_) + velocity_error;
+        double s              = c_ * (-*angle_error_) + velocity_error;
 
         // debug code begin
         *sliding_surface_value_ = s;
@@ -61,18 +71,19 @@ private:
         double feedforward_term = moment_of_inertia_ * (*target_acceleration_);
 
         // integral term
-        sliding_surface_value_integral_ += s;
+        sliding_surface_value_integral_ = sliding_surface_value_integral_ + s * 0.001;
 
         // control law
-        double control_value =
-            damping_term + feedforward_term
-            - moment_of_inertia_
-                  * (c_ * velocity_error + epsilon_ * sat(s) + k_ * (s + sliding_surface_value_integral_));
+        double control_value = damping_term + feedforward_term
+                             - moment_of_inertia_ * (c_ * velocity_error + epsilon_ * tanh(s / phi_) + k_ * (s));
 
         return control_value;
     }
 
     double sat(double s) const {
+        if (phi_ == 0) {
+            RCLCPP_ERROR(logger_, "SlidingModeController: sat(s): phi_ == 0");
+        }
         auto sp = s / phi_;
         if (sp > 1) {
             return 1;
@@ -100,7 +111,7 @@ private:
     double moment_of_inertia_;
     double damping_conefficient_;
     double sliding_surface_value_integral_ = 0;
-    double transmission_gain; // 传动增益，传动比*效率的倒数
+    double gear_ratio; // 传动增益，传动比*效率的倒数
 
     // observed variables
     InputInterface<double> angle_error_;

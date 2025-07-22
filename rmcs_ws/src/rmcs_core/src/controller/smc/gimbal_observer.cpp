@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <deque>
 #include <rclcpp/logger.hpp>
@@ -33,7 +34,7 @@ private:
     // void update_gimbal_status() { *yaw_velocity_ = *yaw_motor_velocity_ * gear_ratio_; }
 
     void update_expect_value() {
-        yaw_angle_error_window_.push_back(*yaw_angle_error_);
+        yaw_angle_error_window_.push_back(-*yaw_angle_error_);
         if (yaw_angle_error_window_.size() > max_window_size_) {
             yaw_angle_error_window_.pop_front();
         }
@@ -46,8 +47,9 @@ private:
         if (yaw_expect_velocity_window_.size() > max_window_size_) {
             yaw_expect_velocity_window_.pop_front();
         }
-        double expect_acceleration = least_square_calculator(yaw_expect_velocity_window_);
-        *yaw_expect_acceleration_  = std::clamp(expect_acceleration, -acceleration_limit_, acceleration_limit_);
+        double expect_acceleration = least_square_calculator(yaw_expect_velocity_window_) / acquisition_interval;
+
+        *yaw_expect_acceleration_ = std::clamp(expect_acceleration, -acceleration_limit_, acceleration_limit_);
     }
 
     static double least_square_calculator(const std::deque<double>& value_window) {
@@ -70,11 +72,16 @@ private:
         }
 
         double denominator = static_cast<double>(n) * sum_k_squared - sum_x * sum_x;
-        if (std::abs(denominator) < 1e-10) {
+        if (std::abs(denominator) < 1e-6) {
             return 0.0;
         }
 
         double slope = (static_cast<double>(n) * sum_xy - sum_x * sum_y) / denominator;
+
+        if (std::isnan(slope)) {
+            slope = 0;
+        }
+
         return slope;
     }
 
