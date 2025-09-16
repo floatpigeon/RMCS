@@ -41,15 +41,18 @@ private:
         while (true) {
             cv::Mat camera_frame = image_capturer_->read();
 
-            // 正常来说，我们不会在这里直接使用imshow()去显示图像
-            // 更好的做法是使用publisher发布图像信息，然后使用foxglove或者rviz显示出来
-
             cv::imshow("test", camera_frame);
             cv::waitKey(1);
 
-            sensor_msgs::msg::Image message;
+            // 正常来说，我们不会在这里直接使用imshow()去显示图像
+            // 不过调试的话，暂时没什么问题
+            // 更好的做法是使用publisher发布图像信息，然后使用foxglove或者rviz显示出来，如下
+
+            // sensor_msgs::msg::Image message;
+            // //
+            // image_publisher_->publish(message);
             //
-            image_publisher_->publish(message);
+            // 注：cv_bridge不知道怎么了找不到头文件，后面再修，先用imshow
         }
     }
     rclcpp::Logger logger_;
