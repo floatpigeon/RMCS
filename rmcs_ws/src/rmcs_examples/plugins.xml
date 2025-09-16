@@ -1,0 +1,5 @@
+<library path="rmcs_examples">
+  <class type="rmcs_examples::GetCameraFrame" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
+</library>

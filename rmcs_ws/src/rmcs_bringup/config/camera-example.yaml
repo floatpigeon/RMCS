@@ -1,0 +1,11 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_examples::GetCameraFrame -> get_camera_frame
+
+get_camera_frame:
+  ros__parameters:  
+    invert_image: false
+    exposure_time: 3000
+    gain: 10.0
