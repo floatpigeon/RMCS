@@ -9,3 +9,8 @@ get_camera_frame:
     invert_image: false
     exposure_time: 3000
     gain: 10.0
+    image_topic_name: camera/image
+    image_type: bgr8
+
+
+# 这个文件需要放在rmcs_bringup下的相应位置

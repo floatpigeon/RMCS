@@ -1,4 +1,4 @@
-// #include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 #include <hikcamera/image_capturer.hpp>
 #include <memory>
 #include <opencv2/core/mat.hpp>
@@ -23,10 +23,12 @@ public:
         camera_profile_.exposure_time = std::chrono::microseconds(get_parameter("exposure_time").as_int());
         camera_profile_.gain = static_cast<float>(get_parameter("gain").as_double());
 
+        image_type_ = get_parameter("image_type").as_string();
+
         image_capturer_ = std::make_unique<hikcamera::ImageCapturer>(camera_profile_);
 
-        // image_publisher_ =
-        // this->create_publisher<sensor_msgs::msg::Image>(get_parameter("image_topic_name").as_string(), 1000);
+        image_publisher_ =
+            this->create_publisher<sensor_msgs::msg::Image>(get_parameter("image_topic_name").as_string(), 1000);
 
         camera_thread_ = std::thread(&GetCameraFrame::camera_frame_update, this);
     }
@@ -46,13 +48,12 @@ private:
 
             // 正常来说，我们不会在这里直接使用imshow()去显示图像
             // 不过调试的话，暂时没什么问题
-            // 更好的做法是使用publisher发布图像信息，然后使用foxglove或者rviz显示出来，如下
+            // 更好的做法是使用publisher发布图像信息，然后使用foxglove或者rviz显示出来，如下示例
 
-            // sensor_msgs::msg::Image message;
-            // //
-            // image_publisher_->publish(message);
-            //
-            // 注：cv_bridge不知道怎么了找不到头文件，后面再修，先用imshow
+            sensor_msgs::msg::Image message;
+            cv_bridge::CvImage cv_image(std_msgs::msg::Header(), image_type_, camera_frame);
+            message = *cv_image.toImageMsg();
+            image_publisher_->publish(message);
         }
     }
     rclcpp::Logger logger_;
@@ -60,7 +61,7 @@ private:
     std::unique_ptr<hikcamera::ImageCapturer> image_capturer_;
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_publisher_;
-    std::string image_type_;
+    std::string image_type_; // 因为彩色图和灰度图编码不一样，需要自行设置，一般是rgb8和mono8
 
     std::thread camera_thread_;
 };
